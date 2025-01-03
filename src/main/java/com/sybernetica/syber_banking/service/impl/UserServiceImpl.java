@@ -3,6 +3,7 @@ package com.sybernetica.syber_banking.service.impl;
 import com.sybernetica.syber_banking.dto.BankResponse;
 import com.sybernetica.syber_banking.dto.UserRequest;
 import com.sybernetica.syber_banking.entity.User;
+import com.sybernetica.syber_banking.utils.AccountUtils;
 
 public class UserServiceImpl implements UserService{
 
@@ -18,7 +19,7 @@ public class UserServiceImpl implements UserService{
                 .gender(userRequest.getGender())
                 .address((userRequest.getAddress()))
                 .stateOfOrigin(userRequest.getStateOfOrigin())
-                .accountNumber()
+                .accountNumber(AccountUtils.generateAccountNumber("442"))
                 .build();
     }
 }
