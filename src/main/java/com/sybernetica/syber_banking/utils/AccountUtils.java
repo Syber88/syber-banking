@@ -4,11 +4,12 @@ import java.time.Year;
 import java.util.Random;
 
 public class AccountUtils {
-    /**
-     * the accoount number should have the branch code along with the
-     * current year of creation of the account
-     * then random numbers
-     */
+
+    public static final String ACCOUNT_EXISTS_CODE = "001";
+    public static final String ACCOUNT_EXISTS_MESSAGE = "This user already has an account";
+    public static final String ACCOUNT_CREATION_SUCCESS = "002";
+    public static final String ACCOUNT_CREATION_SUCCESSS_MESSAGE = "Account has been successfully created";
+
 
 
     public static String randomNumber(){
