@@ -2,6 +2,7 @@ package com.sybernetica.syber_banking.service.impl;
 
 import com.sybernetica.syber_banking.dto.AccountInfo;
 import com.sybernetica.syber_banking.dto.BankResponse;
+import com.sybernetica.syber_banking.dto.EmailDetails;
 import com.sybernetica.syber_banking.dto.UserRequest;
 import com.sybernetica.syber_banking.entity.User;
 import com.sybernetica.syber_banking.repository.UserRepository;
@@ -16,6 +17,9 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     UserRepository userRepo;
+
+    @Autowired
+    EmailServiceImpl emailService;
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
@@ -43,6 +47,14 @@ public class UserServiceImpl implements UserService{
                 .build();
 
         User savedUser = userRepo.save(newUser);
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(savedUser.getEmail())
+                .subject("Created Account")
+                .messageBody("Your account has been created successfully, welcome to the family\nYour Account Details:\n" +
+                        "\tAccount Name: " + savedUser.getFirstName() + " " + savedUser.getLastName() + " Account Number: " +
+                        savedUser.getAccountNumber())
+                .build();
+        emailService.sendEmailAlert(emailDetails);
         return BankResponse.builder()
                 .responseCode(AccountUtils.ACCOUNT_CREATION_SUCCESS)
                 .responseMessage(AccountUtils.ACCOUNT_CREATION_SUCCESSS_MESSAGE)
