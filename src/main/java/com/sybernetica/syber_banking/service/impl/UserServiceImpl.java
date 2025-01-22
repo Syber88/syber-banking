@@ -1,9 +1,6 @@
 package com.sybernetica.syber_banking.service.impl;
 
-import com.sybernetica.syber_banking.dto.AccountInfo;
-import com.sybernetica.syber_banking.dto.BankResponse;
-import com.sybernetica.syber_banking.dto.EmailDetails;
-import com.sybernetica.syber_banking.dto.UserRequest;
+import com.sybernetica.syber_banking.dto.*;
 import com.sybernetica.syber_banking.entity.User;
 import com.sybernetica.syber_banking.repository.UserRepository;
 import com.sybernetica.syber_banking.utils.AccountUtils;
@@ -64,7 +61,18 @@ public class UserServiceImpl implements UserService{
                         .accountNumber(savedUser.getAccountNumber())
                         .build())
                 .build();
-    }}
+    }
+
+    @Override
+    public BankResponse balanceEnquiry(EnquiryRequest request) {
+
+    }
+
+    @Override
+    public String nameEnquiry(EnquiryRequest request) {
+        return "";
+    }
+}
 
 
 
