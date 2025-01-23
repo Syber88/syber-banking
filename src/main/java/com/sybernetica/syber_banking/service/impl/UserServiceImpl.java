@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService{
         emailService.sendEmailAlert(emailDetails);
         return BankResponse.builder()
                 .responseCode(AccountUtils.ACCOUNT_CREATION_SUCCESS)
-                .responseMessage(AccountUtils.ACCOUNT_CREATION_SUCCESSS_MESSAGE)
+                .responseMessage(AccountUtils.ACCOUNT_CREATION_SUCCESS_MESSAGE)
                 .accountInfo(AccountInfo.builder()
                         .accountBalance(savedUser.getAccountBalance())
                         .accountName(savedUser.getFirstName() + " " + savedUser.getLastName() + " " + savedUser.getOtherName())
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService{
 
         return BankResponse.builder()
                 .responseCode(AccountUtils.ACCOUNT_CREDIT_SUCCESS_CODE)
-                .responseMessage(AccountUtils.ACCOUNT_EXIST_MESSAGE)
+                .responseMessage(AccountUtils.ACCOUNT_CREDIT_SUCCESS_MESSAGE)
                 .accountInfo(AccountInfo.builder()
                         .accountName(userToCredit.getFirstName() + " " + userToCredit.getLastName())
                         .accountBalance(userToCredit.getAccountBalance())
@@ -123,6 +123,26 @@ public class UserServiceImpl implements UserService{
                         .build())
                 .build();
 
+    }
+
+    @Override
+    public BankResponse debitAccount(CreditDebitRequest request) {
+        boolean isAcocuntExist = userRepo.existsByAccountNumber(request.getAccountNumber());
+        if (!isAcocuntExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        User userToDebit = userRepo.findByAccountNumber(request.getAccountNumber());
+        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
+        userRepository.save(userToDebit);
+
+        return BankResponse.builder()
+                .responseCode(AccountUtils.)
+                .build();
     }
 }
 
