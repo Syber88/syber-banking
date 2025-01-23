@@ -32,6 +32,6 @@ public class UserController {
 
     @PostMapping("credit")
     public BankResponse creditAccount(@RequestBody CreditDebitRequest request){
-        return
+        return userService.creditAccount(request);
     }
 }
