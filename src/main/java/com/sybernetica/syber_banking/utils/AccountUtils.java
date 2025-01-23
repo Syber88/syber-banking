@@ -5,10 +5,14 @@ import java.util.Random;
 
 public class AccountUtils {
 
-    public static final String ACCOUNT_EXISTS_CODE = "001";
-    public static final String ACCOUNT_EXISTS_MESSAGE = "This user already has an account";
+    public static final String ACCOUNT_ALREADY_EXIST_CODE = "001";
+    public static final String ACCOUNT_ALREADY_EXIST_MESSAGE = "This user already has an account";
     public static final String ACCOUNT_CREATION_SUCCESS = "002";
     public static final String ACCOUNT_CREATION_SUCCESSS_MESSAGE = "Account has been successfully created";
+    public static final String ACCOUNT_NOT_EXIST_CODE = "003";
+    public static final String ACCOUNT_NOT_EXIST_MESSAGE = "Account does not exist";
+    public static final String ACCOUNT_EXIST_CODE = "004";
+    public static final String ACCOUNT_EXIST_MESSAGE = "Account has been found";
 
 
 

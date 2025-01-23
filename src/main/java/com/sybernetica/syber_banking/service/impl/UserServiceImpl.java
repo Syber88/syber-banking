@@ -23,8 +23,8 @@ public class UserServiceImpl implements UserService{
 
         if (userRepo.existsByEmail(userRequest.getEmail())){
             return BankResponse.builder()
-                    .responseCode(AccountUtils.ACCOUNT_EXISTS_CODE)
-                    .responseMessage(AccountUtils.ACCOUNT_EXISTS_MESSAGE)
+                    .responseCode(AccountUtils.ACCOUNT_ALREADY_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_ALREADY_EXIST_MESSAGE)
                     .accountInfo(null)
                     .build();
         }
@@ -65,12 +65,36 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest request) {
+        boolean isAcocuntExist = userRepo.existsByAccountNumber(request.getAccountNumber());
+        if (!isAcocuntExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
 
+        User foundUser = userRepo.findByAccountNumber(request.getAccountNumber());
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_EXIST_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_EXIST_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountBalance(foundUser.getAccountBalance())
+                        .accountNumber(foundUser.getAccountNumber())
+                        .accountName(foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName())
+                        .build())
+                .build();
     }
 
     @Override
     public String nameEnquiry(EnquiryRequest request) {
-        return "";
+        boolean isAcocuntExist = userRepo.existsByAccountNumber(request.getAccountNumber());
+        if (!isAcocuntExist){
+            return AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE;
+        }
+
+        User foundUser = userRepo.findByAccountNumber(request.getAccountNumber());
+        return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
     }
 }
 
