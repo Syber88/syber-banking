@@ -17,6 +17,8 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     EmailServiceImpl emailService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
@@ -95,6 +97,30 @@ public class UserServiceImpl implements UserService{
 
         User foundUser = userRepo.findByAccountNumber(request.getAccountNumber());
         return foundUser.getFirstName() + " " + foundUser.getLastName() + " " + foundUser.getOtherName();
+    }
+
+    @Override
+    public BankResponse creditAccount(CreditDebitRequest request) {
+        boolean isAcocuntExist = userRepo.existsByAccountNumber(request.getAccountNumber());
+        if (!isAcocuntExist){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+        User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
+        userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_CREDIT_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_EXIST_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userToCredit.getFirstName() + " " + userToCredit.getLastName())
+                        .accountBalance(userToCredit.getAccountBalance())
+                        .accountNumber(request.getAccountNumber())
+                        .build())
+                .build();
+
     }
 }
 

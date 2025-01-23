@@ -13,6 +13,8 @@ public class AccountUtils {
     public static final String ACCOUNT_NOT_EXIST_MESSAGE = "Account does not exist";
     public static final String ACCOUNT_EXIST_CODE = "004";
     public static final String ACCOUNT_EXIST_MESSAGE = "Account has been found";
+    public static final String ACCOUNT_CREDIT_SUCCESS_CODE = "005";
+    public static final String ACCOUNT_CREDIT_SUCCESS_MESSAGE = "Account has been credited successfully";
 
 
 

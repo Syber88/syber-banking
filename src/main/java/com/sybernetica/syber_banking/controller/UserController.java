@@ -1,6 +1,7 @@
 package com.sybernetica.syber_banking.controller;
 
 import com.sybernetica.syber_banking.dto.BankResponse;
+import com.sybernetica.syber_banking.dto.CreditDebitRequest;
 import com.sybernetica.syber_banking.dto.EnquiryRequest;
 import com.sybernetica.syber_banking.dto.UserRequest;
 import com.sybernetica.syber_banking.service.impl.UserService;
@@ -19,14 +20,18 @@ public class UserController {
         return userService.createAccount(userRequest);
     }
 
-    @GetMapping("/balanceEnquiry")
+    @GetMapping("balanceEnquiry")
     public BankResponse balanceEnquiry(@RequestBody EnquiryRequest request){
         return userService.balanceEnquiry(request);
     }
 
-    @GetMapping("/nameEnquiry")
+    @GetMapping("nameEnquiry")
     public String nameEnquiry(@RequestBody EnquiryRequest request){
         return userService.nameEnquiry(request);
     }
 
+    @PostMapping("credit")
+    public BankResponse creditAccount(@RequestBody CreditDebitRequest request){
+        return
+    }
 }
