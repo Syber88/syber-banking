@@ -137,6 +137,21 @@ public class UserServiceImpl implements UserService{
         }
 
         User userToDebit = userRepo.findByAccountNumber(request.getAccountNumber());
+        int availableBalance = Integer.parseInt(userToDebit.getAccountBalance().toString());
+        int debitAmount = Integer.parseInt(request.getAmount().toString());
+        if (!(availableBalance >= debitAmount)){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_DEBIT_UNSUCCESSFUL_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_DEBIT_UNSUCCESSFUL_MESSAGE)
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName())
+                            .accountNumber(userToDebit.getAccountNumber())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .build())
+                    .build();
+
+        }
+
         userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
         userRepository.save(userToDebit);
 

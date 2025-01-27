@@ -17,6 +17,9 @@ public class AccountUtils {
     public static final String ACCOUNT_CREDIT_SUCCESS_MESSAGE = "Account has been credited successfully";
     public static final String ACCOUNT_DEBIT_SUCCESS_CODE = "006";
     public static final String ACCOUNT_DEBIT_SUCCESS_MESSAGE = "Account has been debited successfully";
+    public static final String ACCOUNT_DEBIT_UNSUCCESSFUL_CODE = "007";
+    public static final String ACCOUNT_DEBIT_UNSUCCESSFUL_MESSAGE = "Account was not debited successfully\nInsufficient Funds";
+
 
 
     public static String randomNumber(){
