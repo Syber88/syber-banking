@@ -141,7 +141,13 @@ public class UserServiceImpl implements UserService{
         userRepository.save(userToDebit);
 
         return BankResponse.builder()
-                .responseCode(AccountUtils.)
+                .responseCode(AccountUtils.ACCOUNT_DEBIT_SUCCESS_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_DEBIT_SUCCESS_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userToDebit.getFirstName() + " " + userToDebit.getLastName() + " " + userToDebit.getOtherName())
+                        .accountNumber(userToDebit.getAccountNumber())
+                        .accountBalance(userToDebit.getAccountBalance())
+                        .build())
                 .build();
     }
 }
