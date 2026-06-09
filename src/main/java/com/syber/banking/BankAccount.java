@@ -24,7 +24,7 @@ public class BankAccount {
 
     public BigDecimal withdraw(BigDecimal withdrawalAmount){
         if (withdrawalAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("WIthdrawal must be greater than zero");
+            throw new InsufficientFundsException("WIthdrawal must be greater than zero");
         }
 
         if (this.balance.compareTo(withdrawalAmount) <= 0) {
