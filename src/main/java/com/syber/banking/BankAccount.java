@@ -11,6 +11,12 @@ public class BankAccount {
     }
 
     public BankAccount(BigDecimal initialBalance){
+        if (initialBalance == null) {
+            throw new IllegalArgumentException("Initial balance cannot be null");
+        }
+        if (initialBalance.compareTo(BigDecimal.ZERO) < 0){
+            throw new IllegalArgumentException("Initial balance cannot be negative");
+        }
         this.balance = initialBalance;
     }
 
@@ -23,7 +29,7 @@ public class BankAccount {
     }
 
     public BigDecimal withdraw(BigDecimal withdrawalAmount){
-        if (withdrawalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+        if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("WIthdrawal must be greater than zero");
         }
 
