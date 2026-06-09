@@ -34,7 +34,7 @@ public class BankAccount {
         }
 
         if (this.balance.compareTo(withdrawalAmount) <= 0) {
-            throw new IllegalArgumentException("Insufficient Funds");
+            throw new InsufficientFundsException("Insufficient Funds");
         }
         this.balance = this.balance.subtract(withdrawalAmount);
         return this.balance;
