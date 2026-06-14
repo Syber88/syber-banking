@@ -1,4 +1,4 @@
-package com.syber.banking;
+package com.syber.banking.exception;
 
 public class InsufficientFundsException extends RuntimeException{
     public InsufficientFundsException(String message) {
