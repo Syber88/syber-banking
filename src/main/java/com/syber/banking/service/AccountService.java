@@ -1,26 +1,10 @@
-package com.syber.banking.entitiy;
+package com.syber.banking.service;
 
 import com.syber.banking.exception.InsufficientFundsException;
 
 import java.math.BigDecimal;
 
-public class BankAccount {
-
-    private BigDecimal balance;
-
-    public BankAccount() {
-        this.balance = BigDecimal.ZERO;
-    }
-
-    public BankAccount(BigDecimal initialBalance){
-        if (initialBalance == null) {
-            throw new IllegalArgumentException("Initial balance cannot be null");
-        }
-        if (initialBalance.compareTo(BigDecimal.ZERO) < 0){
-            throw new IllegalArgumentException("Initial balance cannot be negative");
-        }
-        this.balance = initialBalance;
-    }
+public class AccountService {
 
     public void deposit(BigDecimal depositAmount){
         if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -43,5 +27,4 @@ public class BankAccount {
     public BigDecimal getBalance(){
         return this.balance;
     }
-
 }

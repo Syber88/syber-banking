@@ -1,6 +1,6 @@
 package com.syber.banking;
 
-import com.syber.banking.entitiy.BankAccount;
+import com.syber.banking.entitiy.Account;
 import com.syber.banking.exception.InsufficientFundsException;
 
 import java.math.BigDecimal;
@@ -9,7 +9,7 @@ public class App
 {
     public static void main( String[] args )
     {
-        BankAccount account = new BankAccount(BigDecimal.valueOf(1000));
+        Account account = new Account(BigDecimal.valueOf(1000));
         System.out.println("Balance after creating Account: R" + account.getBalance());
 
         account.deposit(BigDecimal.valueOf(3000));
