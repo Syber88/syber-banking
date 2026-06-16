@@ -35,18 +35,21 @@ public class AccountService {
         return transactionRepository.save(tx);
     }
 
-    public void withdraw(BigDecimal withdrawalAmount){
+    @Transactional
+    public Transaction withdraw(Long accountId, BigDecimal withdrawalAmount){
         if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("WIthdrawal must be greater than zero");
         }
 
-        if (this.balance.compareTo(withdrawalAmount) <= 0) {
+        Account account = accountRepository.findByAccountId(accountId);
+
+        if (account.getBalance().compareTo(withdrawalAmount) <= 0) {
             throw new InsufficientFundsException("Insufficient Funds");
         }
-        this.balance = this.balance.subtract(withdrawalAmount);
-    }
+        account.withdraw(withdrawalAmount);
+        accountRepository.save(account);
 
-    public BigDecimal getBalance(){
-        return this.balance;
+        Transaction tx = new Transaction(null, accountId, withdrawalAmount, TransactionType.WITHDRAWAL);
+        return transactionRepository.save(tx);
     }
 }
