@@ -1,16 +1,38 @@
 package com.syber.banking.service;
 
+import com.syber.banking.entitiy.Account;
+import com.syber.banking.entitiy.Transaction;
+import com.syber.banking.entitiy.TransactionType;
 import com.syber.banking.exception.InsufficientFundsException;
+import com.syber.banking.repository.AccountRepository;
+import com.syber.banking.repository.TransactionRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Service
 public class AccountService {
 
-    public void deposit(BigDecimal depositAmount){
+    public final AccountRepository accountRepository;
+    public final TransactionRepository transactionRepository;
+
+    public AccountService(AccountRepository accountRepository, TransactionRepository transactionRepository){
+        this.accountRepository = accountRepository;
+        this.transactionRepository = transactionRepository;
+    }
+
+    @Transactional
+    public Transaction deposit(Long accountId, BigDecimal depositAmount){
         if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit must be greater than zero");
         }
-        this.balance = this.balance.add(depositAmount);
+        Account account = accountRepository.findById(accountId).orElseThrow();
+        account.deposit(depositAmount);
+        accountRepository.save(account);
+
+        Transaction tx = new Transaction(null, accountId, depositAmount, TransactionType.DEPOSIT);
+        return transactionRepository.save(tx);
     }
 
     public void withdraw(BigDecimal withdrawalAmount){

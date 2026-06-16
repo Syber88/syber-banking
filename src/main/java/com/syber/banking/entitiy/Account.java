@@ -13,24 +13,54 @@ public class Account {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="customer_id")
+    @JoinColumn(name="customer")
     private Customer customer; /*Foreign key*/
     private Long accountNumber;
     private BigDecimal balance;
-    private String accountTye;
-    private String status;
+    private AccountType accountType;
+    private AccountStatus status;
 
     public Account() {
         this.balance = BigDecimal.ZERO;
     }
 
-    public Account(BigDecimal initialBalance){
+    public Account(Customer customer,
+                   BigDecimal initialBalance,
+                   Long accountNumber,
+                   AccountType type,
+                   AccountStatus status) {
+
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null");
+        }
+
         if (initialBalance == null) {
             throw new IllegalArgumentException("Initial balance cannot be null");
         }
-        if (initialBalance.compareTo(BigDecimal.ZERO) < 0){
+
+        if (initialBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Initial balance cannot be negative");
         }
+
+        if (accountNumber == null) {
+            throw new IllegalArgumentException("Account number cannot be null");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("Account type cannot be null");
+        }
+
+        this.customer = customer;
         this.balance = initialBalance;
+        this.accountNumber = accountNumber;
+        this.accountType = type;
+        this.status = status;
+    }
+
+    public void deposit(BigDecimal depositAmount){
+        if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit must be greater than zero");
+        }
+        this.balance = this.balance.add(depositAmount);
     }
 }
