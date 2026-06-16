@@ -41,7 +41,7 @@ public class AccountService {
             throw new InsufficientFundsException("WIthdrawal must be greater than zero");
         }
 
-        Account account = accountRepository.findByAccountId(accountId);
+        Account account = accountRepository.findById(accountId).orElseThrow();
 
         if (account.getBalance().compareTo(withdrawalAmount) <= 0) {
             throw new InsufficientFundsException("Insufficient Funds");
