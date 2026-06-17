@@ -58,6 +58,12 @@ public class Account {
         this.status = status;
     }
 
+    public void assignAccountNumber() {
+        if (this.accountNumber != null) {
+
+        }
+    }
+
     public void deposit(BigDecimal depositAmount){
         if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit must be greater than zero");
