@@ -27,7 +27,6 @@ public class Account {
 
     public Account(Customer customer,
                    BigDecimal initialBalance,
-                   String accountNumber,
                    AccountType type,
                    AccountStatus status) {
 
