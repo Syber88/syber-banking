@@ -16,7 +16,7 @@ public class Account {
     @ManyToOne
     @JoinColumn(name="customer")
     private Customer customer; /*Foreign key*/
-    private Long accountNumber;
+    private String accountNumber;
     private BigDecimal balance;
     private AccountType accountType;
     private AccountStatus status;
@@ -27,7 +27,7 @@ public class Account {
 
     public Account(Customer customer,
                    BigDecimal initialBalance,
-                   Long accountNumber,
+                   String accountNumber,
                    AccountType type,
                    AccountStatus status) {
 
@@ -58,10 +58,11 @@ public class Account {
         this.status = status;
     }
 
-    public void assignAccountNumber() {
+    public void assignAccountNumber(String accountNumber) {
         if (this.accountNumber != null) {
-
+            throw new IllegalStateException("Account number has already been assigned.");
         }
+        this.accountNumber = accountNumber;
     }
 
     public void deposit(BigDecimal depositAmount){

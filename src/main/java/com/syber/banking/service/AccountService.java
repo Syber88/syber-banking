@@ -16,6 +16,7 @@ public class AccountService {
 
     public final AccountRepository accountRepository;
     public final TransactionRepository transactionRepository;
+    public static final String BANK_PREFIX = "8800";
 
     public AccountService(AccountRepository accountRepository, TransactionRepository transactionRepository){
         this.accountRepository = accountRepository;
@@ -51,5 +52,18 @@ public class AccountService {
 
         Transaction tx = new Transaction(null, accountId, withdrawalAmount, TransactionType.WITHDRAWAL);
         return transactionRepository.save(tx);
+    }
+
+    @Transactional
+    public String assignAccountNumber(Long accountId) {
+        Account account = accountRepository.findById(accountId).orElseThrow();
+        if (account.getAccountNumber() != null) {
+            throw new IllegalStateException("Account number has already been assigned.");
+        }
+        String sequence = String.format("%08d",account.getId());
+        String generatedAccountNumber = BANK_PREFIX + sequence;
+        account.assignAccountNumber(generatedAccountNumber);
+        accountRepository.save(account);
+        return generatedAccountNumber;
     }
 }
