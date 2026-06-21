@@ -1,10 +1,9 @@
 package com.syber.banking.service;
 
-import com.syber.banking.entitiy.Account;
-import com.syber.banking.entitiy.Transaction;
-import com.syber.banking.entitiy.TransactionType;
+import com.syber.banking.entitiy.*;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
+import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +14,25 @@ import java.math.BigDecimal;
 public class AccountService {
 
     public final AccountRepository accountRepository;
+    public final CustomerRepository customerRepository;
     public final TransactionRepository transactionRepository;
     public static final String BANK_PREFIX = "8800";
 
-    public AccountService(AccountRepository accountRepository, TransactionRepository transactionRepository){
+    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, TransactionRepository transactionRepository){
         this.accountRepository = accountRepository;
+        this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
+    }
+
+    @Transactional
+    public Account createAccount(Long customerId, AccountType accountType) {
+
+        Customer customer = customerRepository.findById(customerId).orElseThrow();
+        Account account = new Account(customer, BigDecimal.ZERO, accountType, AccountStatus.ACTIVE);
+        accountRepository.save(account);
+        assignAccountNumber(account.getId());
+
+        return account;
     }
 
     @Transactional
@@ -55,7 +67,7 @@ public class AccountService {
     }
 
     @Transactional
-    public String assignAccountNumber(Long accountId) {
+    public void assignAccountNumber(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow();
         if (account.getAccountNumber() != null) {
             throw new IllegalStateException("Account number has already been assigned.");
@@ -64,6 +76,5 @@ public class AccountService {
         String generatedAccountNumber = BANK_PREFIX + sequence;
         account.assignAccountNumber(generatedAccountNumber);
         accountRepository.save(account);
-        return generatedAccountNumber;
     }
 }

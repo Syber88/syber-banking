@@ -14,27 +14,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("Account/")
+@RequestMapping("/Accounts")
 public class AccountController {
 
     private final CustomerRepository customerRepository;
-    private final AccountRepository accountRepository;
     private final AccountService accountService;
 
     public AccountController(CustomerRepository customerRepository, AccountRepository accountRepository, AccountService accountService) {
-        this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.accountService = accountService;
     }
 
     @PostMapping("")
     public Account createAccount(Long customerId, AccountType accountType) {
-
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        Account account = new Account(customer, BigDecimal.ZERO, accountType, AccountStatus.ACTIVE);
-        accountService.assignAccountNumber(account.getId());
-
-        return account;
+         return accountService.createAccount(customerId,accountType);
     }
 
 }
