@@ -1,17 +1,15 @@
 package com.syber.banking.controller;
 
+import com.syber.banking.dto.request.CreateAccountRequest;
+import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.entitiy.Account;
-import com.syber.banking.entitiy.AccountStatus;
-import com.syber.banking.entitiy.AccountType;
-import com.syber.banking.entitiy.Customer;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.service.AccountService;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/Accounts")
@@ -26,8 +24,15 @@ public class AccountController {
     }
 
     @PostMapping("")
-    public Account createAccount(Long customerId, AccountType accountType) {
-         return accountService.createAccount(customerId,accountType);
+    public AccountResponse createAccount(@RequestBody CreateAccountRequest request) {
+         Account account=  accountService.createAccount(request.getCustomerId(),request.getAccountType());
+         return new AccountResponse(
+                 account.getId(),
+                 account.getAccountNumber(),
+                 account.getBalance(),
+                 account.getAccountType(),
+                 account.getStatus()
+         );
     }
 
 }

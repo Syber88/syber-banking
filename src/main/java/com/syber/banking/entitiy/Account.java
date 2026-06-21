@@ -42,10 +42,6 @@ public class Account {
             throw new IllegalArgumentException("Initial balance cannot be negative");
         }
 
-        if (accountNumber == null) {
-            throw new IllegalArgumentException("Account number cannot be null");
-        }
-
         if (type == null) {
             throw new IllegalArgumentException("Account type cannot be null");
         }
