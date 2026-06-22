@@ -1,5 +1,6 @@
 package com.syber.banking.controller;
 
+import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entitiy.Customer;
 import com.syber.banking.repository.CustomerRepository;
 import org.springframework.web.bind.annotation.*;
@@ -22,12 +23,26 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
-    private Customer getCustomerById(@PathVariable Long customerId){
-        return customerRepository.findById(customerId).orElseThrow();
+    private CustomerResponse getCustomerById(@PathVariable Long customerId){
+        Customer customer =  customerRepository.findById(customerId).orElseThrow();
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getAccounts(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getEmail()
+        );
     }
 
     @PostMapping
-    private Customer createCustomer(@RequestBody Customer customer){
-        return customerRepository.save(customer);
+    private CustomerResponse createCustomer(@RequestBody Customer customer){
+        customerRepository.save(customer);
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getAccounts(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getEmail()
+        );
     }
 }
