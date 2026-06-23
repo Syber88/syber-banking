@@ -1,25 +1,21 @@
 package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
+import com.syber.banking.dto.request.DepositRequest;
 import com.syber.banking.dto.response.AccountResponse;
+import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.entitiy.Account;
-import com.syber.banking.repository.AccountRepository;
-import com.syber.banking.repository.CustomerRepository;
+import com.syber.banking.entitiy.Transaction;
 import com.syber.banking.service.AccountService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/Accounts")
 public class AccountController {
 
-    private final CustomerRepository customerRepository;
     private final AccountService accountService;
 
-    public AccountController(CustomerRepository customerRepository, AccountRepository accountRepository, AccountService accountService) {
-        this.customerRepository = customerRepository;
+    public AccountController( AccountService accountService) {
         this.accountService = accountService;
     }
 
@@ -35,4 +31,15 @@ public class AccountController {
          );
     }
 
+    @PostMapping("/{accountId}/deposit")
+    public DepositResponse deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
+        Transaction tx = accountService.deposit(accountId, request.getAmount());
+        return new DepositResponse(
+                tx.getId(),
+                tx.getToAccountNumber(),
+                tx.getAmount(),
+                tx.getCreatedAt(),
+                tx.getStatus()
+        );
+    }
 }

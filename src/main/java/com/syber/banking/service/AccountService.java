@@ -44,14 +44,14 @@ public class AccountService {
         account.deposit(depositAmount);
         accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, accountId, depositAmount, TransactionType.DEPOSIT);
+        Transaction tx = new Transaction(null, account.getAccountNumber(), depositAmount, TransactionType.DEPOSIT);
         return transactionRepository.save(tx);
     }
 
     @Transactional
     public Transaction withdraw(Long accountId, BigDecimal withdrawalAmount){
         if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("WIthdrawal must be greater than zero");
+            throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
 
         Account account = accountRepository.findById(accountId).orElseThrow();
@@ -62,7 +62,7 @@ public class AccountService {
         account.withdraw(withdrawalAmount);
         accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, accountId, withdrawalAmount, TransactionType.WITHDRAWAL);
+        Transaction tx = new Transaction(null, account.getAccountNumber(), withdrawalAmount, TransactionType.WITHDRAWAL);
         return transactionRepository.save(tx);
     }
 

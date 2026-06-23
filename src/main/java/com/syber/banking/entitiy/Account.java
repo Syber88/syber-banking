@@ -69,7 +69,7 @@ public class Account {
 
     public void withdraw(BigDecimal withdrawalAmount){
         if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("WIthdrawal must be greater than zero");
+            throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
 
         if (this.balance.compareTo(withdrawalAmount) <= 0) {
