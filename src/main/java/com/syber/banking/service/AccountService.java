@@ -1,6 +1,7 @@
 package com.syber.banking.service;
 
 import com.syber.banking.dto.response.AccountResponse;
+import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.entitiy.*;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
@@ -43,16 +44,22 @@ public class AccountService {
     }
 
     @Transactional
-    public Transaction deposit(Long accountId, BigDecimal depositAmount){
+    public DepositResponse deposit(Long accountId, BigDecimal depositAmount){
         if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit must be greater than zero");
         }
-        Account account = accountRepository.findById(accountId).orElseThrow();
+        Account account = getAccountById(accountId);
         account.deposit(depositAmount);
-        accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, account.getAccountNumber(), depositAmount, TransactionType.DEPOSIT);
-        return transactionRepository.save(tx);
+        Transaction tx = new Transaction(null, savedAccount.getAccountNumber(), depositAmount, TransactionType.DEPOSIT);
+        return new DepositResponse(
+                tx.getId(),
+                tx.getToAccountNumber(),
+                tx.getAmount(),
+                tx.getCreatedAt(),
+                tx.getStatus()
+        );
     }
 
     @Transactional
@@ -83,5 +90,9 @@ public class AccountService {
         String generatedAccountNumber = BANK_PREFIX + sequence;
         account.assignAccountNumber(generatedAccountNumber);
         accountRepository.save(account);
+    }
+
+    public Account getAccountById(Long accountId) {
+        return accountRepository.findById(accountId).orElseThrow();
     }
 }

@@ -40,6 +40,6 @@ public class AccountController {
 
     @GetMapping("/{accountId}")
     public AccountResponse getAccountById(@PathVariable Long accountId) {
-        Account account = accountService
+        Account account = accountService.getAccountById(accountId);
     }
 }
