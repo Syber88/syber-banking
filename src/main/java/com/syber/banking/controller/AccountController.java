@@ -23,14 +23,7 @@ public class AccountController {
 
     @PostMapping("")
     public AccountResponse createAccount(@RequestBody CreateAccountRequest request) {
-         Account account=  accountService.createAccount(request.getCustomerId(),request.getAccountType());
-         return new AccountResponse(
-                 account.getId(),
-                 account.getAccountNumber(),
-                 account.getBalance(),
-                 account.getAccountType(),
-                 account.getStatus()
-         );
+         return accountService.createAccount(request.getCustomerId(),request.getAccountType());
     }
 
     @PostMapping("/{accountId}/deposit")

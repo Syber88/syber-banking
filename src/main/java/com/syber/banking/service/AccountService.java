@@ -1,5 +1,6 @@
 package com.syber.banking.service;
 
+import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.entitiy.*;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
@@ -25,14 +26,20 @@ public class AccountService {
     }
 
     @Transactional
-    public Account createAccount(Long customerId, AccountType accountType) {
+    public AccountResponse createAccount(Long customerId, AccountType accountType) {
 
         Customer customer = customerRepository.findById(customerId).orElseThrow();
         Account account = new Account(customer, BigDecimal.ZERO, accountType, AccountStatus.ACTIVE);
-        accountRepository.save(account);
-        assignAccountNumber(account.getId());
+        Account createdAccount = accountRepository.save(account);
+        assignAccountNumber(createdAccount.getId());
 
-        return account;
+        return new AccountResponse(
+                createdAccount.getId(),
+                createdAccount.getAccountNumber(),
+                createdAccount.getBalance(),
+                createdAccount.getAccountType(),
+                createdAccount.getStatus()
+        );
     }
 
     @Transactional
