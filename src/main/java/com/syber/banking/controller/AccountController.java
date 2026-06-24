@@ -9,6 +9,8 @@ import com.syber.banking.entitiy.Transaction;
 import com.syber.banking.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Path;
+
 @RestController
 @RequestMapping("/Accounts")
 public class AccountController {
@@ -41,5 +43,10 @@ public class AccountController {
                 tx.getCreatedAt(),
                 tx.getStatus()
         );
+    }
+
+    @GetMapping("/{accountId}")
+    public AccountResponse getAccountById(@PathVariable Long accountId) {
+        Account account = accountService
     }
 }

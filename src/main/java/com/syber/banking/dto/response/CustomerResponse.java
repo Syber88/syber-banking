@@ -10,7 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomerResponse {
     private Long id;
-    private List<Account> accounts;
     private String firstNamte;
     private String lastName;
     private String email;

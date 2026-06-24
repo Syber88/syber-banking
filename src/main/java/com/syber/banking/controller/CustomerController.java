@@ -1,8 +1,9 @@
 package com.syber.banking.controller;
 
+import com.syber.banking.dto.request.CreateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entitiy.Customer;
-import com.syber.banking.repository.CustomerRepository;
+import com.syber.banking.service.CustomerService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,38 +12,26 @@ import java.util.List;
 @RequestMapping("/customer")
 public class CustomerController {
 
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
 
-    public CustomerController(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
     @GetMapping
-    private List<Customer> getCustomers() {
-        return customerRepository.findAll();
+    public List<CustomerResponse> getCustomers() {
+        return customerService.getCustomers();
     }
 
     @GetMapping("/{customerId}")
-    private CustomerResponse getCustomerById(@PathVariable Long customerId){
-        Customer customer =  customerRepository.findById(customerId).orElseThrow();
-        return new CustomerResponse(
-                customer.getId(),
-                customer.getAccounts(),
-                customer.getFirstName(),
-                customer.getLastName(),
-                customer.getEmail()
-        );
+    public CustomerResponse getCustomerById(@PathVariable Long customerId){
+        return customerService.getCustomer(customerId);
+
     }
 
     @PostMapping
-    private CustomerResponse createCustomer(@RequestBody Customer customer){
-        customerRepository.save(customer);
-        return new CustomerResponse(
-                customer.getId(),
-                customer.getAccounts(),
-                customer.getFirstName(),
-                customer.getLastName(),
-                customer.getEmail()
-        );
+    public CustomerResponse createCustomer(@RequestBody CreateCustomerRequest request){
+        return customerService.createCustomer(request);
+
     }
 }
