@@ -2,6 +2,7 @@ package com.syber.banking.service;
 
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
+import com.syber.banking.dto.response.WithdrawResponse;
 import com.syber.banking.entitiy.*;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
@@ -53,6 +54,7 @@ public class AccountService {
         Account savedAccount = accountRepository.save(account);
 
         Transaction tx = new Transaction(null, savedAccount.getAccountNumber(), depositAmount, TransactionType.DEPOSIT);
+        transactionRepository.save(tx);
         return new DepositResponse(
                 tx.getId(),
                 tx.getToAccountNumber(),
@@ -63,7 +65,7 @@ public class AccountService {
     }
 
     @Transactional
-    public Transaction withdraw(Long accountId, BigDecimal withdrawalAmount){
+    public WithdrawResponse withdraw(Long accountId, BigDecimal withdrawalAmount){
         if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
@@ -77,7 +79,14 @@ public class AccountService {
         accountRepository.save(account);
 
         Transaction tx = new Transaction(null, account.getAccountNumber(), withdrawalAmount, TransactionType.WITHDRAWAL);
-        return transactionRepository.save(tx);
+        transactionRepository.save(tx);
+        return new WithdrawResponse(
+                tx.getId(),
+                tx.getFromAccountNumber(),
+                tx.getAmount(),
+                tx.getCreatedAt(),
+                tx.getStatus()
+        );
     }
 
     @Transactional
