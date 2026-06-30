@@ -28,18 +28,18 @@ public class AccountController {
 
     @PostMapping("/{accountId}/deposit")
     public DepositResponse deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
-        Transaction tx = accountService.deposit(accountId, request.getAmount());
-        return new DepositResponse(
-                tx.getId(),
-                tx.getToAccountNumber(),
-                tx.getAmount(),
-                tx.getCreatedAt(),
-                tx.getStatus()
-        );
+        return  accountService.deposit(accountId, request.getAmount());
     }
 
     @GetMapping("/{accountId}")
     public AccountResponse getAccountById(@PathVariable Long accountId) {
         Account account = accountService.getAccountById(accountId);
+        return new AccountResponse(
+                account.getId(),
+                account.getAccountNumber(),
+                account.getBalance(),
+                account.getAccountType(),
+                account.getStatus()
+        );
     }
 }

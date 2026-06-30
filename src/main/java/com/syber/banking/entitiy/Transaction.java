@@ -1,10 +1,6 @@
 package com.syber.banking.entitiy;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,18 +22,25 @@ public class Transaction {
     private TransactionType type;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransactionStatus status;
 
     public Transaction(
             String fromAccountNumber,
             String toAccountNumber,
             BigDecimal amount,
-            TransactionType type) {
+            TransactionType type,
+            TransactionStatus status) {
 
         this.fromAccountNumber = fromAccountNumber;
         this.toAccountNumber = toAccountNumber;
         this.amount = amount;
         this.type = type;
+        this.status = status;
     }
+
 }

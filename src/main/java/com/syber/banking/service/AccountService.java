@@ -53,14 +53,15 @@ public class AccountService {
         account.deposit(depositAmount);
         Account savedAccount = accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, savedAccount.getAccountNumber(), depositAmount, TransactionType.DEPOSIT);
-        transactionRepository.save(tx);
+        Transaction tx = new Transaction(null, savedAccount.getAccountNumber(), depositAmount, TransactionType.DEPOSIT, TransactionStatus.SUCCESS);
+        Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
+
         return new DepositResponse(
-                tx.getId(),
-                tx.getToAccountNumber(),
-                tx.getAmount(),
-                tx.getCreatedAt(),
-                tx.getStatus()
+                savedTransaction.getId(),
+                savedTransaction.getToAccountNumber(),
+                savedTransaction.getAmount(),
+                savedTransaction.getCreatedAt(),
+                savedTransaction.getStatus()
         );
     }
 
@@ -78,14 +79,14 @@ public class AccountService {
         account.withdraw(withdrawalAmount);
         accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, account.getAccountNumber(), withdrawalAmount, TransactionType.WITHDRAWAL);
-        transactionRepository.save(tx);
+        Transaction tx = new Transaction(null, account.getAccountNumber(), withdrawalAmount, TransactionType.WITHDRAWAL, TransactionStatus.SUCCESS);
+        Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
         return new WithdrawResponse(
-                tx.getId(),
-                tx.getFromAccountNumber(),
-                tx.getAmount(),
-                tx.getCreatedAt(),
-                tx.getStatus()
+                savedTransaction.getId(),
+                savedTransaction.getFromAccountNumber(),
+                savedTransaction.getAmount(),
+                savedTransaction.getCreatedAt(),
+                savedTransaction.getStatus()
         );
     }
 
