@@ -1,6 +1,6 @@
 package com.syber.banking.dto.response;
 
-import com.syber.banking.entitiy.TransactionStatus;
+import com.syber.banking.entity.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

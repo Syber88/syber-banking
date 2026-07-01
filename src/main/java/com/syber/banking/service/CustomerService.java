@@ -2,7 +2,7 @@ package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
-import com.syber.banking.entitiy.Customer;
+import com.syber.banking.entity.Customer;
 import com.syber.banking.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 

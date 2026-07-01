@@ -1,6 +1,7 @@
-package com.syber.banking.entitiy;
+package com.syber.banking.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,8 @@ public class Customer {
     private List<Account> accounts;
     private String firstName;
     private String lastName;
+
+    @Email(message = "Email should be valid.")
     private String email;
     private String passwordHash;
 }

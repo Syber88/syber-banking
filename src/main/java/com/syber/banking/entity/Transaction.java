@@ -1,4 +1,4 @@
-package com.syber.banking.entitiy;
+package com.syber.banking.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

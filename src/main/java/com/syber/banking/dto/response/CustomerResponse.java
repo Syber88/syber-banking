@@ -1,10 +1,7 @@
 package com.syber.banking.dto.response;
 
-import com.syber.banking.entitiy.Account;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor
