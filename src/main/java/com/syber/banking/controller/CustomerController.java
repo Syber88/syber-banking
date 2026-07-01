@@ -1,6 +1,7 @@
 package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.CreateCustomerRequest;
+import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,8 +43,8 @@ public class CustomerController {
     }
 
     @PutMapping("/{customerId}")
-    public CustomerResponse updateCustomer() {
-
+    public CustomerResponse updateCustomer(@PathVariable Long customerId, @RequestBody UpdateCustomerRequest request) {
+        return customerService.updateCustomer(customerId, request);
     }
 
 
