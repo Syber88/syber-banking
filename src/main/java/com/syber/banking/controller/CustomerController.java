@@ -41,5 +41,10 @@ public class CustomerController {
 
     }
 
+    @PutMapping("/{customerId}")
+    public CustomerResponse updateCustomer() {
+
+    }
+
 
 }

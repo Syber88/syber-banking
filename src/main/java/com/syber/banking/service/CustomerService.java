@@ -1,8 +1,10 @@
 package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateCustomerRequest;
+import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entity.Customer;
+import com.syber.banking.exception.CustomerNotFound;
 import com.syber.banking.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
@@ -52,5 +54,21 @@ public class CustomerService {
                         customer.getEmail()
                 ))
                 .toList();
+    }
+
+    public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new CustomerNotFound("Customer not found"));
+        customer.setFirstName(request.getFirstName());
+        customer.setLastName(request.getLastName());
+        customer.setEmail(request.getEmail());
+
+        Customer savedCustomer = customerRepository.save(customer);
+        return new CustomerResponse(
+                savedCustomer.getId(),
+                savedCustomer.getFirstName(),
+                savedCustomer.getLastName(),
+                savedCustomer.getEmail()
+        );
     }
 }
