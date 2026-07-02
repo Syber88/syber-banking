@@ -6,7 +6,6 @@ import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,23 +23,31 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
+    @Operation(
+            summary = "Get all customers",
+            description = "Returns all customers registered in the banking system."
+    )
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getCustomers() {
         List<CustomerResponse> customers = customerService.getCustomers();
         return ResponseEntity.ok(customers);
     }
 
-    @GetMapping("/{customerId}")
     @Operation(
             summary = "Find customer by ID",
             description = "Returns a customer if it exists."
     )
+    @GetMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Long customerId){
         CustomerResponse customer = customerService.getCustomer(customerId);
         return ResponseEntity.ok(customer);
 
     }
 
+    @Operation(
+            summary = "Creates a customer",
+            description = "Creates a new customer in the banking system."
+    )
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@RequestBody CreateCustomerRequest request){
         CustomerResponse customer = customerService.createCustomer(request);
@@ -48,13 +55,20 @@ public class CustomerController {
         return ResponseEntity.created(location).body(customer);
 
     }
-
+    @Operation(
+            summary = "Update customer",
+            description = "Updates an existing customer's information."
+    )
     @PutMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long customerId, @RequestBody UpdateCustomerRequest request) {
         CustomerResponse customer = customerService.updateCustomer(customerId, request);
         return ResponseEntity.ok(customer);
     }
 
+    @Operation(
+            summary = "Delete customer",
+            description = "Deletes a customer by ID."
+    )
     @DeleteMapping("/{customerId}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long customerId) {
         customerService.deleteCustomer(customerId);
