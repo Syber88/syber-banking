@@ -59,4 +59,11 @@ public class CustomerService {
         Customer savedCustomer = customerRepository.save(customer);
         return mapper.toResponse(savedCustomer);
     }
+
+    public void deleteCustomer(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new CustomerNotFound("Customer Not found");
+        }
+        customerRepository.deleteById(customerId);
+    }
 }
