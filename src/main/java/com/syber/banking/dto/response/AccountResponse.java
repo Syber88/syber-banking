@@ -1,7 +1,7 @@
 package com.syber.banking.dto.response;
 
-import com.syber.banking.entitiy.AccountStatus;
-import com.syber.banking.entitiy.AccountType;
+import com.syber.banking.entity.AccountStatus;
+import com.syber.banking.entity.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

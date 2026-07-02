@@ -4,15 +4,12 @@ import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
-import com.syber.banking.entitiy.Account;
-import com.syber.banking.entitiy.Transaction;
+import com.syber.banking.entity.Account;
 import com.syber.banking.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
-
 @RestController
-@RequestMapping("/Accounts")
+@RequestMapping("/api/v1/accounts")
 public class AccountController {
 
     private final AccountService accountService;

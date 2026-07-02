@@ -3,7 +3,7 @@ package com.syber.banking.service;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.dto.response.WithdrawResponse;
-import com.syber.banking.entitiy.*;
+import com.syber.banking.entity.*;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;

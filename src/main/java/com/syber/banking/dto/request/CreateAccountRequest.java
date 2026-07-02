@@ -1,6 +1,6 @@
 package com.syber.banking.dto.request;
 
-import com.syber.banking.entitiy.AccountType;
+import com.syber.banking.entity.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

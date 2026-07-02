@@ -1,8 +1,11 @@
 package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateCustomerRequest;
+import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
-import com.syber.banking.entitiy.Customer;
+import com.syber.banking.entity.Customer;
+import com.syber.banking.exception.CustomerNotFound;
+import com.syber.banking.mapper.CustomerMapper;
 import com.syber.banking.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,19 +15,16 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerMapper mapper;
 
-    public CustomerService (CustomerRepository customerRepository) {
+    public CustomerService (CustomerRepository customerRepository, CustomerMapper mapper) {
         this.customerRepository = customerRepository;
+        this.mapper = mapper;
     }
 
     public CustomerResponse getCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId).orElseThrow();
-        return new CustomerResponse(
-                customer.getId(),
-                customer.getFirstName(),
-                customer.getLastName(),
-                customer.getEmail()
-        );
+        return mapper.toResponse(customer);
     }
 
     public CustomerResponse createCustomer(CreateCustomerRequest request) {
@@ -35,12 +35,7 @@ public class CustomerService {
         customer.setPasswordHash(request.getPasswordHash());
 
         Customer savedCustomer = customerRepository.save(customer);
-        return new CustomerResponse(
-                savedCustomer.getId(),
-                savedCustomer.getFirstName(),
-                savedCustomer.getLastName(),
-                savedCustomer.getEmail()
-        );
+        return mapper.toResponse(savedCustomer);
     }
 
     public List<CustomerResponse> getCustomers() {
@@ -52,5 +47,23 @@ public class CustomerService {
                         customer.getEmail()
                 ))
                 .toList();
+    }
+
+    public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new CustomerNotFound("Customer not found"));
+        customer.setFirstName(request.getFirstName());
+        customer.setLastName(request.getLastName());
+        customer.setEmail(request.getEmail());
+
+        Customer savedCustomer = customerRepository.save(customer);
+        return mapper.toResponse(savedCustomer);
+    }
+
+    public void deleteCustomer(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new CustomerNotFound("Customer Not found");
+        }
+        customerRepository.deleteById(customerId);
     }
 }

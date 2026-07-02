@@ -1,4 +1,4 @@
-package com.syber.banking.entitiy;
+package com.syber.banking.entity;
 
 import com.syber.banking.exception.InsufficientFundsException;
 import jakarta.persistence.*;
