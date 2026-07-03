@@ -2,8 +2,10 @@ package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
+import com.syber.banking.dto.response.WithdrawResponse;
 import com.syber.banking.entity.Account;
 import com.syber.banking.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +39,11 @@ public class AccountController {
     @PostMapping("/{accountId}/deposit")
     public DepositResponse deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
         return  accountService.deposit(accountId, request.getAmount());
+    }
+
+    @PostMapping("/{accountId}/withdraw")
+    public WithdrawResponse withdraw(@PathVariable Long accountId, @RequestBody WithdrawRequest request) {
+        return accountService.withdraw(accountId, request.getAmount());
     }
 
     @Operation(
