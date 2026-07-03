@@ -48,9 +48,8 @@ public class Account {
 
         this.customer = customer;
         this.balance = initialBalance;
-        this.accountNumber = accountNumber;
         this.accountType = type;
-        this.status = status;
+        this.status = AccountStatus.ACTIVE;
     }
 
     public void assignAccountNumber(String accountNumber) {

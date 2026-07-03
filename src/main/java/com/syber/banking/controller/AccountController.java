@@ -7,9 +7,12 @@ import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.dto.response.WithdrawResponse;
 import com.syber.banking.entity.Account;
+import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +21,10 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
 
     private final AccountService accountService;
+    private final AccountMapper mapper;
 
-    public AccountController( AccountService accountService) {
+    public AccountController( AccountService accountService, AccountMapper mapper) {
+        this.mapper = mapper;
         this.accountService = accountService;
     }
 
@@ -28,8 +33,9 @@ public class AccountController {
             description = "Creates a new bank account for an existing customer."
     )
     @PostMapping("")
-    public AccountResponse createAccount(@RequestBody CreateAccountRequest request) {
-         return accountService.createAccount(request.getCustomerId(),request.getAccountType());
+    public ResponseEntity<AccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
+        AccountResponse response = accountService.createAccount(request.getCustomerId(),request.getAccountType());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(
@@ -37,13 +43,16 @@ public class AccountController {
             description = "Deposits funds into an existing bank account."
     )
     @PostMapping("/{accountId}/deposit")
-    public DepositResponse deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
-        return  accountService.deposit(accountId, request.getAmount());
+    public ResponseEntity<DepositResponse> deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
+        DepositResponse response = accountService.deposit(accountId, request.getAmount());
+        return ResponseEntity.ok(response);
+
     }
 
     @PostMapping("/{accountId}/withdraw")
-    public WithdrawResponse withdraw(@PathVariable Long accountId, @RequestBody WithdrawRequest request) {
-        return accountService.withdraw(accountId, request.getAmount());
+    public ResponseEntity<WithdrawResponse> withdraw(@PathVariable Long accountId, @RequestBody WithdrawRequest request) {
+        WithdrawResponse response = accountService.withdraw(accountId, request.getAmount());
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -51,14 +60,9 @@ public class AccountController {
             description = "Returns account details using the account ID."
     )
     @GetMapping("/{accountId}")
-    public AccountResponse getAccountById(@PathVariable Long accountId) {
+    public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId) {
         Account account = accountService.getAccountById(accountId);
-        return new AccountResponse(
-                account.getId(),
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getAccountType(),
-                account.getStatus()
-        );
+        AccountResponse response = mapper.toResponse(account);
+        return ResponseEntity.ok(response);
     }
 }
