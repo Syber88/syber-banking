@@ -4,6 +4,9 @@ import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.dto.response.WithdrawResponse;
 import com.syber.banking.entity.*;
+import com.syber.banking.exception.AccountHasBalance;
+import com.syber.banking.exception.AccountNotFound;
+import com.syber.banking.exception.AccountisStillActive;
 import com.syber.banking.exception.InsufficientFundsException;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
@@ -88,6 +91,20 @@ public class AccountService {
                 savedTransaction.getCreatedAt(),
                 savedTransaction.getStatus()
         );
+    }
+
+    @Transactional
+    public void deleteAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFound(
+                "Account does not exist"));
+        if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
+            throw new AccountHasBalance("Cannot delete an account with a balance.");
+        }
+        if (account.getStatus() != AccountStatus.CLOSED) {
+            throw new AccountisStillActive("Active account cannot be closed.");
+        }
+        account.setStatus(AccountStatus.CLOSED);
+        accountRepository.save(account);
     }
 
     @Transactional
