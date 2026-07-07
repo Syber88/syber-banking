@@ -37,7 +37,7 @@ public class AccountController {
     @PostMapping("")
     public ResponseEntity<AccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request.getCustomerId(),request.getAccountType());
-        URI location = URI.create("/api/v1/accounts/"  + response);
+        URI location = URI.create("/api/v1/accounts/" + response);
         return ResponseEntity.created(location).body(response);
     }
 
@@ -67,5 +67,11 @@ public class AccountController {
         Account account = accountService.getAccountById(accountId);
         AccountResponse response = mapper.toResponse(account);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{accountId}")
+    public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId) {
+        accountService.deleteAccount(accountId);
+        return ResponseEntity.noContent().build();
     }
 }
