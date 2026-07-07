@@ -3,6 +3,8 @@ package com.syber.banking.entity;
 import com.syber.banking.exception.InsufficientFundsException;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -19,6 +21,7 @@ public class Account {
     private String accountNumber;
     private BigDecimal balance;
     private AccountType accountType;
+    @Setter
     private AccountStatus status;
 
     public Account() {

@@ -55,6 +55,7 @@ public class CustomerController {
         return ResponseEntity.created(location).body(customer);
 
     }
+
     @Operation(
             summary = "Update customer",
             description = "Updates an existing customer's information."
@@ -74,7 +75,4 @@ public class CustomerController {
         customerService.deleteCustomer(customerId);
         return ResponseEntity.noContent().build();
     }
-
-
-
 }
