@@ -6,6 +6,7 @@ import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +50,7 @@ public class CustomerController {
             description = "Creates a new customer in the banking system."
     )
     @PostMapping
-    public ResponseEntity<CustomerResponse> createCustomer(@RequestBody CreateCustomerRequest request){
+    public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request){
         CustomerResponse customer = customerService.createCustomer(request);
         URI location = URI.create("/api/v1/customers/" + customer.getId());
         return ResponseEntity.created(location).body(customer);
@@ -61,7 +62,7 @@ public class CustomerController {
             description = "Updates an existing customer's information."
     )
     @PutMapping("/{customerId}")
-    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long customerId, @RequestBody UpdateCustomerRequest request) {
+    public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long customerId, @Valid @RequestBody UpdateCustomerRequest request) {
         CustomerResponse customer = customerService.updateCustomer(customerId, request);
         return ResponseEntity.ok(customer);
     }
