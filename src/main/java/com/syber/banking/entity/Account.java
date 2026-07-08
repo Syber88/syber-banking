@@ -74,7 +74,7 @@ public class Account {
             throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
 
-        if (this.balance.compareTo(withdrawalAmount) <= 0) {
+        if (this.balance.compareTo(withdrawalAmount) < 0) {
             throw new InsufficientFundsException("Insufficient Funds");
         }
         this.balance = this.balance.subtract(withdrawalAmount);
