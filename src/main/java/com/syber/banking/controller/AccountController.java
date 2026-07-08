@@ -11,7 +11,7 @@ import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +35,7 @@ public class AccountController {
             description = "Creates a new bank account for an existing customer."
     )
     @PostMapping("")
-    public ResponseEntity<AccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
+    public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request.getCustomerId(),request.getAccountType());
         URI location = URI.create("/api/v1/accounts/" + response.getId());
         return ResponseEntity.created(location).body(response);
@@ -46,14 +46,14 @@ public class AccountController {
             description = "Deposits funds into an existing bank account."
     )
     @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<DepositResponse> deposit(@PathVariable Long accountId, @RequestBody DepositRequest request){
+    public ResponseEntity<DepositResponse> deposit(@PathVariable Long accountId, @Valid @RequestBody DepositRequest request){
         DepositResponse response = accountService.deposit(accountId, request.getAmount());
         return ResponseEntity.ok(response);
 
     }
 
     @PostMapping("/{accountId}/withdraw")
-    public ResponseEntity<WithdrawResponse> withdraw(@PathVariable Long accountId, @RequestBody WithdrawRequest request) {
+    public ResponseEntity<WithdrawResponse> withdraw(@PathVariable Long accountId, @Valid @RequestBody WithdrawRequest request) {
         WithdrawResponse response = accountService.withdraw(accountId, request.getAmount());
         return ResponseEntity.ok(response);
     }
