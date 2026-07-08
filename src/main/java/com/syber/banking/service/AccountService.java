@@ -120,6 +120,6 @@ public class AccountService {
     }
 
     public Account getAccountById(Long accountId) {
-        return accountRepository.findById(accountId).orElseThrow();
+        return accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFound("Account not found"));
     }
 }
