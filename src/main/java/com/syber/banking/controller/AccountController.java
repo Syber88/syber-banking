@@ -37,7 +37,7 @@ public class AccountController {
     @PostMapping("")
     public ResponseEntity<AccountResponse> createAccount(@RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request.getCustomerId(),request.getAccountType());
-        URI location = URI.create("/api/v1/accounts/" + response);
+        URI location = URI.create("/api/v1/accounts/" + response.getId());
         return ResponseEntity.created(location).body(response);
     }
 
