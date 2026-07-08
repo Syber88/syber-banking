@@ -32,7 +32,6 @@ public class CustomerService {
         customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
         customer.setEmail(request.getEmail());
-        customer.setPasswordHash(request.getPasswordHash());
 
         Customer savedCustomer = customerRepository.save(customer);
         return mapper.toResponse(savedCustomer);
