@@ -24,7 +24,9 @@ public class AccountService {
     public final TransactionRepository transactionRepository;
     public static final String BANK_PREFIX = "8800";
 
-    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, TransactionRepository transactionRepository){
+    public AccountService(AccountRepository accountRepository,
+                          CustomerRepository customerRepository,
+                          TransactionRepository transactionRepository){
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
@@ -56,7 +58,10 @@ public class AccountService {
         account.deposit(depositAmount);
         Account savedAccount = accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, savedAccount.getAccountNumber(), depositAmount, TransactionType.DEPOSIT, TransactionStatus.SUCCESS);
+        Transaction tx = new Transaction(null,
+                savedAccount.getAccountNumber(),
+                depositAmount, TransactionType.DEPOSIT,
+                TransactionStatus.SUCCESS);
         Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
 
         return new DepositResponse(
@@ -74,7 +79,7 @@ public class AccountService {
             throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
 
-        Account account = accountRepository.findById(accountId).orElseThrow();
+        Account account = findAccountOrThrow(accountId);
 
         if (account.getBalance().compareTo(withdrawalAmount) < 0) {
             throw new InsufficientFundsException("Insufficient Funds");
@@ -82,7 +87,11 @@ public class AccountService {
         account.withdraw(withdrawalAmount);
         accountRepository.save(account);
 
-        Transaction tx = new Transaction(null, account.getAccountNumber(), withdrawalAmount, TransactionType.WITHDRAWAL, TransactionStatus.SUCCESS);
+        Transaction tx = new Transaction(null,
+                account.getAccountNumber(),
+                withdrawalAmount,
+                TransactionType.WITHDRAWAL,
+                TransactionStatus.SUCCESS);
         Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
         return new WithdrawResponse(
                 savedTransaction.getId(),
@@ -95,8 +104,7 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(Long accountId) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFound(
-                "Account does not exist"));
+        Account account = findAccountOrThrow(accountId);
         if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
             throw new AccountHasBalance("Cannot delete an account with a balance.");
         }
@@ -109,7 +117,7 @@ public class AccountService {
 
     @Transactional
     public void assignAccountNumber(Long accountId) {
-        Account account = accountRepository.findById(accountId).orElseThrow();
+        Account account = findAccountOrThrow(accountId);
         if (account.getAccountNumber() != null) {
             throw new IllegalStateException("Account number has already been assigned.");
         }
@@ -120,6 +128,11 @@ public class AccountService {
     }
 
     public Account getAccountById(Long accountId) {
-        return accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFound("Account not found"));
+        return findAccountOrThrow(accountId);
+    }
+
+    private Account findAccountOrThrow(Long accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFound("Account not Found"));
     }
 }
