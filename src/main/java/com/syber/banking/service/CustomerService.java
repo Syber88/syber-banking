@@ -23,7 +23,7 @@ public class CustomerService {
     }
 
     public CustomerResponse getCustomer(Long customerId) {
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
+        Customer customer = findCustomerOrThrow(customerId);
         return mapper.toResponse(customer);
     }
 
@@ -49,8 +49,7 @@ public class CustomerService {
     }
 
     public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
-        Customer customer = customerRepository.findById(customerId).orElseThrow(
-                () -> new CustomerNotFound("Customer not found"));
+        Customer customer = findCustomerOrThrow(customerId);
         customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
         customer.setEmail(request.getEmail());
@@ -64,5 +63,9 @@ public class CustomerService {
             throw new CustomerNotFound("Customer Not found");
         }
         customerRepository.deleteById(customerId);
+    }
+
+    private Customer findCustomerOrThrow(Long customerId) {
+        return customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFound("Customer not found"));
     }
 }

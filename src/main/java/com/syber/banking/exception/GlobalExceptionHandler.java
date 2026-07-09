@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountHasBalance.class)
     public ResponseEntity<ErrorResponse> handleAccountHasBalance(
-            AccountisStillActive exception,
+            AccountHasBalance exception,
             HttpServletRequest request
     ) {
         ErrorResponse error = new ErrorResponse(
