@@ -1,12 +1,14 @@
 package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
+import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
-import com.syber.banking.dto.response.DepositResponse;
-import com.syber.banking.dto.response.WithdrawResponse;
+import com.syber.banking.dto.response.TransactionResponse;
 import com.syber.banking.entity.*;
 import com.syber.banking.exception.*;
 import com.syber.banking.mapper.AccountMapper;
+import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.repository.TransactionRepository;
@@ -23,15 +25,17 @@ public class AccountService {
     public final TransactionRepository transactionRepository;
     public static final String BANK_PREFIX = "8800";
     private final AccountMapper accountMapper;
+    private final TransactionMapper transactionMapper;
 
     public AccountService(AccountRepository accountRepository,
                           CustomerRepository customerRepository,
                           TransactionRepository transactionRepository,
-                          AccountMapper accountMapper){
+                          AccountMapper accountMapper, TransactionMapper transactionMapper){
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
         this.accountMapper = accountMapper;
+        this.transactionMapper = transactionMapper;
     }
 
     @Transactional
@@ -47,56 +51,37 @@ public class AccountService {
     }
 
     @Transactional
-    public DepositResponse deposit(Long accountId, BigDecimal depositAmount){
-        if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
+    public TransactionResponse deposit(Long accountId, DepositRequest request){
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit must be greater than zero");
         }
         Account account = getAccountById(accountId);
-        account.deposit(depositAmount);
+        account.deposit(request.getAmount());
         Account savedAccount = accountRepository.save(account);
 
-        Transaction tx = new Transaction(null,
-                savedAccount.getAccountNumber(),
-                depositAmount, TransactionType.DEPOSIT,
-                TransactionStatus.SUCCESS);
+        Transaction tx = transactionMapper.toTransaction(savedAccount, request.getAmount(), TransactionType.DEPOSIT);
         Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
 
-        return new DepositResponse(
-                savedTransaction.getId(),
-                savedTransaction.getToAccountNumber(),
-                savedTransaction.getAmount(),
-                savedTransaction.getCreatedAt(),
-                savedTransaction.getStatus()
-        );
+        return transactionMapper.toResponse(savedTransaction);
     }
 
     @Transactional
-    public WithdrawResponse withdraw(Long accountId, BigDecimal withdrawalAmount){
-        if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
+    public TransactionResponse withdraw(Long accountId, WithdrawRequest request){
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("Withdrawal must be greater than zero");
         }
 
         Account account = findAccountOrThrow(accountId);
 
-        if (account.getBalance().compareTo(withdrawalAmount) < 0) {
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new InsufficientFundsException("Insufficient Funds");
         }
-        account.withdraw(withdrawalAmount);
-        accountRepository.save(account);
+        account.withdraw(request.getAmount());
+        Account savedAccount = accountRepository.save(account);
 
-        Transaction tx = new Transaction(null,
-                account.getAccountNumber(),
-                withdrawalAmount,
-                TransactionType.WITHDRAWAL,
-                TransactionStatus.SUCCESS);
+        Transaction tx = transactionMapper.toTransaction(savedAccount, request.getAmount(), TransactionType.WITHDRAWAL);
         Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
-        return new WithdrawResponse(
-                savedTransaction.getId(),
-                savedTransaction.getFromAccountNumber(),
-                savedTransaction.getAmount(),
-                savedTransaction.getCreatedAt(),
-                savedTransaction.getStatus()
-        );
+        return transactionMapper.toResponse(savedTransaction);
     }
 
     @Transactional
