@@ -16,8 +16,8 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String fromAccountNumber;
-    private String toAccountNumber;
+    private String accountNumber;
+    private String destinationAccountNumber;
     private BigDecimal amount;
     private TransactionType type;
 
@@ -30,14 +30,14 @@ public class Transaction {
     private TransactionStatus status;
 
     public Transaction(
-            String fromAccountNumber,
-            String toAccountNumber,
+            String accountNumber,
+            String destinationAccountNumber,
             BigDecimal amount,
             TransactionType type,
             TransactionStatus status) {
 
-        this.fromAccountNumber = fromAccountNumber;
-        this.toAccountNumber = toAccountNumber;
+        this.accountNumber = accountNumber;
+        this.destinationAccountNumber = destinationAccountNumber;
         this.amount = amount;
         this.type = type;
         this.status = status;

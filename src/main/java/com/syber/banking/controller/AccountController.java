@@ -4,8 +4,7 @@ import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
 import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
-import com.syber.banking.dto.response.DepositResponse;
-import com.syber.banking.dto.response.WithdrawResponse;
+import com.syber.banking.dto.response.TransactionResponse;
 import com.syber.banking.entity.Account;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.service.AccountService;
@@ -46,15 +45,15 @@ public class AccountController {
             description = "Deposits funds into an existing bank account."
     )
     @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<DepositResponse> deposit(@PathVariable Long accountId, @Valid @RequestBody DepositRequest request){
-        DepositResponse response = accountService.deposit(accountId, request.getAmount());
+    public ResponseEntity<TransactionResponse> deposit(@PathVariable Long accountId, @Valid @RequestBody DepositRequest request){
+        TransactionResponse response = accountService.deposit(accountId, request);
         return ResponseEntity.ok(response);
 
     }
 
     @PostMapping("/{accountId}/withdraw")
-    public ResponseEntity<WithdrawResponse> withdraw(@PathVariable Long accountId, @Valid @RequestBody WithdrawRequest request) {
-        WithdrawResponse response = accountService.withdraw(accountId, request.getAmount());
+    public ResponseEntity<TransactionResponse> withdraw(@PathVariable Long accountId, @Valid @RequestBody WithdrawRequest request) {
+        TransactionResponse response = accountService.withdraw(accountId, request);
         return ResponseEntity.ok(response);
     }
 
