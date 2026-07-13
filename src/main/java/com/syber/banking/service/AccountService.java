@@ -2,6 +2,7 @@ package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.TransferRequest;
 import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.TransactionResponse;
@@ -80,6 +81,30 @@ public class AccountService {
         Account savedAccount = accountRepository.save(account);
 
         Transaction tx = transactionMapper.toTransaction(savedAccount, request.getAmount(), TransactionType.WITHDRAWAL);
+        Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
+        return transactionMapper.toResponse(savedTransaction);
+    }
+
+    @Transactional
+    public TransactionResponse transfer(Long sourceId, TransferRequest request) {
+
+        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidTransferAmountException("Withdrawal must be greater than zero");
+        }
+
+        Account sourceAccount = findAccountOrThrow(sourceId);
+        Account destinationAccount = findAccountOrThrow(request.getDestinationAccountId());
+
+        if (sourceAccount.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new InsufficientFundsException("Insufficient funds");
+        }
+
+        sourceAccount.transfer(request.getAmount(), destinationAccount);
+
+        accountRepository.save(sourceAccount);
+        accountRepository.save(destinationAccount);
+
+        Transaction tx = transactionMapper.toTransaction(sourceAccount, destinationAccount, request.getAmount());
         Transaction savedTransaction = transactionRepository.saveAndFlush(tx);
         return transactionMapper.toResponse(savedTransaction);
     }

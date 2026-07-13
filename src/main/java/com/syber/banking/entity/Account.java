@@ -1,6 +1,8 @@
 package com.syber.banking.entity;
 
+import com.syber.banking.exception.AccountNotFoundException;
 import com.syber.banking.exception.InsufficientFundsException;
+import com.syber.banking.exception.InvalidTransferAmountException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -78,5 +80,26 @@ public class Account {
             throw new InsufficientFundsException("Insufficient Funds");
         }
         this.balance = this.balance.subtract(withdrawalAmount);
+    }
+
+    public void transfer(BigDecimal transferAmount, Account destinationAccount) {
+        if (destinationAccount == null) {
+            throw new AccountNotFoundException("Account was not not found");
+        }
+
+        if (this.equals(destinationAccount)) {
+            throw new IllegalArgumentException("Cannot transfer to the same account");
+        }
+
+        if (transferAmount == null || transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidTransferAmountException("Transfer amount must be greater than zero");
+        }
+
+        if (this.balance.compareTo(transferAmount) < 0) {
+            throw new InsufficientFundsException("Insufficient funds");
+        }
+
+        this.withdraw(transferAmount);
+        destinationAccount.deposit(transferAmount);
     }
 }
