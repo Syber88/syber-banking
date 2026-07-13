@@ -2,6 +2,7 @@ package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.TransferRequest;
 import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.TransactionResponse;
@@ -51,6 +52,10 @@ public class AccountController {
 
     }
 
+    @Operation(
+            summary = "withdraw money",
+            description = "withdraw funds from an existing bank account."
+    )
     @PostMapping("/{accountId}/withdraw")
     public ResponseEntity<TransactionResponse> withdraw(@PathVariable Long accountId, @Valid @RequestBody WithdrawRequest request) {
         TransactionResponse response = accountService.withdraw(accountId, request);
@@ -67,7 +72,22 @@ public class AccountController {
         AccountResponse response = mapper.toResponse(account);
         return ResponseEntity.ok(response);
     }
+    @Operation (
+            summary = "Transfer money",
+            description = "Transfers money between 2 existing accounts."
+    )
+    @PostMapping("/{accountId}/tranfer/")
+    public ResponseEntity<TransactionResponse> transfer(@PathVariable Long accountId,
+                                                        @Valid @RequestBody TransferRequest request
+    ) {
+        TransactionResponse response = accountService.transfer(accountId, request);
+        return ResponseEntity.ok(response);
+    }
 
+    @Operation (
+            summary = "Delete account",
+            description = "Deletes the account using the account ID."
+    )
     @DeleteMapping("/{accountId}")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId) {
         accountService.deleteAccount(accountId);
