@@ -76,7 +76,7 @@ public class AccountController {
             summary = "Transfer money",
             description = "Transfers money between 2 existing accounts."
     )
-    @PostMapping("/{accountId}/tranfer/")
+    @PostMapping("/{accountId}/transfer")
     public ResponseEntity<TransactionResponse> transfer(@PathVariable Long accountId,
                                                         @Valid @RequestBody TransferRequest request
     ) {

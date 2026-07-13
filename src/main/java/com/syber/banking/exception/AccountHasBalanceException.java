@@ -1,7 +1,7 @@
 package com.syber.banking.exception;
 
-public class AccountHasBalance extends RuntimeException {
-    public AccountHasBalance(String message) {
+public class AccountHasBalanceException extends RuntimeException {
+    public AccountHasBalanceException(String message) {
         super(message);
     }
 }
