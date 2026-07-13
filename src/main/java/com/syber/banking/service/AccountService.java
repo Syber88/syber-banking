@@ -113,7 +113,7 @@ public class AccountService {
     public void deleteAccount(Long accountId) {
         Account account = findAccountOrThrow(accountId);
         if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
-            throw new AccountHasBalance("Cannot delete an account with a balance.");
+            throw new AccountHasBalanceException("Cannot delete an account with a balance.");
         }
         if (account.getStatus() != AccountStatus.CLOSED) {
             throw new AccountisStillActiveException("Active account cannot be closed.");

@@ -1,6 +1,7 @@
 package com.syber.banking.exception;
 
 import com.syber.banking.dto.response.ErrorResponse;
+import com.syber.banking.exception.AccountHasBalanceException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,9 +70,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    @ExceptionHandler(AccountHasBalance.class)
+    @ExceptionHandler(AccountHasBalanceException.class)
     public ResponseEntity<ErrorResponse> handleAccountHasBalance(
-            AccountHasBalance exception,
+            AccountHasBalanceException exception,
             HttpServletRequest request
     ) {
         ErrorResponse error = new ErrorResponse(
