@@ -42,7 +42,7 @@ public class AccountService {
     public AccountResponse createAccount(CreateAccountRequest request) {
 
         Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow(() ->
-                new CustomerNotFound("Customer not Found"));
+                new CustomerNotFoundException("Customer not Found"));
         Account account = new Account(customer, BigDecimal.ZERO, request.getAccountType(), AccountStatus.ACTIVE);
         Account createdAccount = accountRepository.save(account);
         assignAccountNumber(createdAccount.getId());
@@ -53,7 +53,7 @@ public class AccountService {
     @Transactional
     public TransactionResponse deposit(Long accountId, DepositRequest request){
         if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Deposit must be greater than zero");
+            throw new InvalidTransferAmountException("Deposit must be greater than zero");
         }
         Account account = getAccountById(accountId);
         account.deposit(request.getAmount());
@@ -68,7 +68,7 @@ public class AccountService {
     @Transactional
     public TransactionResponse withdraw(Long accountId, WithdrawRequest request){
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("Withdrawal must be greater than zero");
+            throw new InvalidTransferAmountException("Withdrawal must be greater than zero");
         }
 
         Account account = findAccountOrThrow(accountId);
@@ -91,7 +91,7 @@ public class AccountService {
             throw new AccountHasBalance("Cannot delete an account with a balance.");
         }
         if (account.getStatus() != AccountStatus.CLOSED) {
-            throw new AccountisStillActive("Active account cannot be closed.");
+            throw new AccountisStillActiveException("Active account cannot be closed.");
         }
         account.setStatus(AccountStatus.CLOSED);
         accountRepository.save(account);
@@ -101,7 +101,7 @@ public class AccountService {
     public void assignAccountNumber(Long accountId) {
         Account account = findAccountOrThrow(accountId);
         if (account.getAccountNumber() != null) {
-            throw new IllegalStateException("Account number has already been assigned.");
+            throw new AccountNumberAlreadyAssignedException("Account number has already been assigned.");
         }
         String sequence = String.format("%08d",account.getId());
         String generatedAccountNumber = BANK_PREFIX + sequence;
@@ -115,6 +115,6 @@ public class AccountService {
 
     private Account findAccountOrThrow(Long accountId) {
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new AccountNotFound("Account not Found"));
+                .orElseThrow(() -> new AccountNotFoundException("Account not Found"));
     }
 }

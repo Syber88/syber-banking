@@ -4,7 +4,7 @@ import com.syber.banking.dto.request.CreateCustomerRequest;
 import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entity.Customer;
-import com.syber.banking.exception.CustomerNotFound;
+import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.mapper.CustomerMapper;
 import com.syber.banking.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -60,12 +60,12 @@ public class CustomerService {
 
     public void deleteCustomer(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
-            throw new CustomerNotFound("Customer Not found");
+            throw new CustomerNotFoundException("Customer Not found");
         }
         customerRepository.deleteById(customerId);
     }
 
     private Customer findCustomerOrThrow(Long customerId) {
-        return customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFound("Customer not found"));
+        return customerRepository.findById(customerId).orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
     }
 }
