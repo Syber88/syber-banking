@@ -1,5 +1,6 @@
 package com.syber.banking.service;
 
+import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.dto.response.WithdrawResponse;
@@ -8,6 +9,7 @@ import com.syber.banking.exception.AccountHasBalance;
 import com.syber.banking.exception.AccountNotFound;
 import com.syber.banking.exception.AccountisStillActive;
 import com.syber.banking.exception.InsufficientFundsException;
+import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.repository.TransactionRepository;
@@ -23,30 +25,27 @@ public class AccountService {
     public final CustomerRepository customerRepository;
     public final TransactionRepository transactionRepository;
     public static final String BANK_PREFIX = "8800";
+    private final AccountMapper accountMapper;
 
     public AccountService(AccountRepository accountRepository,
                           CustomerRepository customerRepository,
-                          TransactionRepository transactionRepository){
+                          TransactionRepository transactionRepository,
+                          AccountMapper accountMapper){
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
+        this.accountMapper = accountMapper;
     }
 
     @Transactional
-    public AccountResponse createAccount(Long customerId, AccountType accountType) {
+    public AccountResponse createAccount(CreateAccountRequest request) {
 
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        Account account = new Account(customer, BigDecimal.ZERO, accountType, AccountStatus.ACTIVE);
+        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow();
+        Account account = new Account(customer, BigDecimal.ZERO, request.getAccountType(), AccountStatus.ACTIVE);
         Account createdAccount = accountRepository.save(account);
         assignAccountNumber(createdAccount.getId());
 
-        return new AccountResponse(
-                createdAccount.getId(),
-                createdAccount.getAccountNumber(),
-                createdAccount.getBalance(),
-                createdAccount.getAccountType(),
-                createdAccount.getStatus()
-        );
+        return accountMapper.toResponse(account);
     }
 
     @Transactional
