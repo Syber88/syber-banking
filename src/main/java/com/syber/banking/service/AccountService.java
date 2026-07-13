@@ -5,10 +5,7 @@ import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.DepositResponse;
 import com.syber.banking.dto.response.WithdrawResponse;
 import com.syber.banking.entity.*;
-import com.syber.banking.exception.AccountHasBalance;
-import com.syber.banking.exception.AccountNotFound;
-import com.syber.banking.exception.AccountisStillActive;
-import com.syber.banking.exception.InsufficientFundsException;
+import com.syber.banking.exception.*;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
@@ -40,7 +37,8 @@ public class AccountService {
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
 
-        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow();
+        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow(() ->
+                new CustomerNotFound("Customer not Found"));
         Account account = new Account(customer, BigDecimal.ZERO, request.getAccountType(), AccountStatus.ACTIVE);
         Account createdAccount = accountRepository.save(account);
         assignAccountNumber(createdAccount.getId());
