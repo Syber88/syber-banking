@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CustomerNotFound.class)
+    @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCustomerNotFound(
-            CustomerNotFound exception,
+            CustomerNotFoundException exception,
             HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
@@ -26,9 +26,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(AccountNotFound.class)
+    @ExceptionHandler(AccountNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleAccountNotFound(
-            AccountNotFound exception,
+            AccountNotFoundException exception,
             HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
                 LocalDateTime.now(),
@@ -54,9 +54,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    @ExceptionHandler(AccountisStillActive.class)
+    @ExceptionHandler(AccountisStillActiveException.class)
     public ResponseEntity<ErrorResponse> handleAccountIsStillActive(
-            AccountisStillActive exception,
+            AccountisStillActiveException exception,
             HttpServletRequest request
     ) {
         ErrorResponse error = new ErrorResponse(
