@@ -1,134 +1,170 @@
 # Syber Banking API
 
-Syber Banking is a Spring Boot REST API for managing customers, bank accounts, deposits, and withdrawals. It uses Spring Web MVC, Spring Data JPA, PostgreSQL, Lombok, and Springdoc OpenAPI for interactive API documentation.
+Syber Banking is a Spring Boot REST API for a small digital-banking domain. It manages customers and their accounts, accepts deposits and withdrawals, transfers money between accounts, and records each completed money movement as a transaction.
 
-## Features
+The project is intentionally API-first. It has no web interface or authentication layer at present; use the REST endpoints directly or explore them through Swagger UI.
 
-- Create, view, update, and delete customers
-- Create bank accounts for existing customers
-- Generate account numbers with the `8800` bank prefix
-- Deposit funds into an account
-- Withdraw funds from an account
-- Persist customers, accounts, and transactions with PostgreSQL
-- Explore endpoints through Swagger UI
+## What the API supports
 
-## Tech Stack
+- Customer registration, lookup, update, and removal
+- Savings and credit accounts for existing customers
+- Generated account numbers using the `8800` bank prefix
+- Deposits and withdrawals with transaction records
+- Transfers between two existing accounts, performed in one database transaction
+- Validation of request bodies and domain rules such as positive amounts and available funds
+- Consistent JSON errors for the main not-found and conflict cases
+- Interactive OpenAPI documentation through Swagger UI
 
-- Java 25
-- Spring Boot 4.1.0
-- Maven
-- PostgreSQL
-- Spring Data JPA
-- Lombok
-- Springdoc OpenAPI
+## Technology
 
-## Project Structure
+| Area | Choice |
+| --- | --- |
+| Language | Java 25 |
+| Framework | Spring Boot 4.1.0 |
+| Web layer | Spring Web MVC |
+| Persistence | Spring Data JPA / Hibernate |
+| Database | PostgreSQL |
+| Build | Maven (wrapper included) |
+| API documentation | Springdoc OpenAPI 2.8.9 |
+| Boilerplate reduction | Lombok |
+
+## Project layout
 
 ```text
-src/main/java/com/syber/banking
-├── config        # OpenAPI configuration
-├── controller    # REST controllers
-├── dto           # Request and response DTOs
-├── entity        # JPA entities and enums
-├── exception     # Custom exceptions
-├── mapper        # Entity/DTO mappers
-├── repository    # Spring Data repositories
-└── service       # Business logic
+src
+├── main
+│   ├── java/com/syber/banking
+│   │   ├── config          # OpenAPI configuration
+│   │   ├── controller      # HTTP endpoints
+│   │   ├── dto             # Request and response contracts
+│   │   ├── entity          # JPA entities and domain enums
+│   │   ├── exception       # Domain exceptions and error handling
+│   │   ├── mapper          # Entity-to-response mapping
+│   │   ├── repository      # Spring Data repositories
+│   │   └── service         # Business rules and transactions
+│   └── resources
+│       └── application.properties
+└── test                    # JUnit / Mockito tests
 ```
+
+The controllers stay thin: they validate and expose HTTP contracts, while the services own the business rules. `AccountService` is marked transactional for balance-changing work, so a transfer updates both accounts and creates its transaction record as one unit of work.
+
+## Domain at a glance
+
+```text
+Customer 1 ── * Account
+
+Account ── creates ── * Transaction
+```
+
+An account holds its owner, generated account number, balance, type, and status. Transactions are retained as records of successful deposits, withdrawals, and transfers. A transfer record includes both the source and destination account number.
+
+Supported values are:
+
+| Field | Values |
+| --- | --- |
+| `accountType` | `SAVINGS`, `CREDIT` |
+| `accountStatus` | `ACTIVE`, `CLOSED`, `FROZEN` |
+| `transactionStatus` | `SUCCESS`, `FAILED`, `PENDING` |
+| transaction type (stored internally) | `DEPOSIT`, `WITHDRAWAL`, `TRANSFER` |
+
+New accounts start at a balance of `0` with an `ACTIVE` status. Their account number is generated after persistence as `8800` followed by the zero-padded account ID; for example, account ID `42` becomes `880000000042`.
 
 ## Prerequisites
 
-Make sure you have the following installed:
-
-- Java 25 or compatible JDK
+- JDK 25
 - PostgreSQL
-- Maven, or use the included Maven wrapper
+- Git (optional)
 
-## Database Setup
+Maven does not need to be installed separately: the repository includes `mvnw` and `mvnw.cmd`.
 
-Create a PostgreSQL database named `banking`.
+## Database configuration
 
-The current application configuration expects PostgreSQL to run on port `5433`:
+Create a local PostgreSQL database named `banking`:
+
+```sql
+CREATE DATABASE banking;
+```
+
+The checked-in development configuration uses PostgreSQL on port `5433` and serves the API on port `8081`:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5433/banking
 spring.datasource.username=postgres
-spring.datasource.password=accelerate
 server.port=8081
+spring.jpa.hibernate.ddl-auto=update
 ```
 
-Update `src/main/resources/application.properties` if your local database username, password, port, or database name is different.
+Before running the service, update `src/main/resources/application.properties` with your own database password (and change the host, database name, or port if necessary). Spring Boot properties can also be overridden without editing the file:
 
-## Running the Application
-
-From the project root, run:
-
-```bash
-./mvnw spring-boot:run
+```powershell
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5433/banking"
+$env:SPRING_DATASOURCE_USERNAME="postgres"
+$env:SPRING_DATASOURCE_PASSWORD="your-password"
 ```
 
-On Windows PowerShell:
+`spring.jpa.hibernate.ddl-auto=update` is convenient for local development because Hibernate evolves the schema on startup. It is not a migration strategy for production. SQL logging is also enabled in the development configuration.
+
+## Run the application
+
+From the repository root:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-The API will start at:
+On macOS or Linux:
 
-```text
-http://localhost:8081
+```bash
+./mvnw spring-boot:run
 ```
 
-Swagger UI is available at:
+When startup completes, the service is available at `http://localhost:8081`.
 
-```text
-http://localhost:8081/swagger-ui.html
-```
+| Resource | URL |
+| --- | --- |
+| Swagger UI | `http://localhost:8081/swagger-ui/index.html` |
+| OpenAPI JSON | `http://localhost:8081/v3/api-docs` |
+| API base path | `http://localhost:8081/api/v1` |
 
-## API Endpoints
+## API reference
+
+All JSON examples use `Content-Type: application/json`. IDs are generated by the database.
 
 ### Customers
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/api/v1/customers` | Get all customers |
-| `GET` | `/api/v1/customers/{customerId}` | Get a customer by ID |
-| `POST` | `/api/v1/customers` | Create a customer |
-| `PUT` | `/api/v1/customers/{customerId}` | Update a customer |
-| `DELETE` | `/api/v1/customers/{customerId}` | Delete a customer |
+| Method | Path | Purpose | Success |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/customers` | List registered customers | `200 OK` |
+| `GET` | `/api/v1/customers/{customerId}` | Get one customer | `200 OK` |
+| `POST` | `/api/v1/customers` | Register a customer | `201 Created` |
+| `PUT` | `/api/v1/customers/{customerId}` | Replace customer details | `200 OK` |
+| `DELETE` | `/api/v1/customers/{customerId}` | Remove a customer | `204 No Content` |
 
-Create customer request:
-
-```json
-{
-  "firstName": "Siyam",
-  "lastName": "Gz",
-  "email": "siyam@example.com",
-  "passwordHash": "hashed-password"
-}
-```
-
-Update customer request:
+Create or update a customer:
 
 ```json
 {
   "firstName": "Siyam",
   "lastName": "Gz",
-  "email": "new-email@example.com",
-  "passwordHash": "hashed-password"
+  "email": "siyam@example.com"
 }
 ```
+
+The name fields and email are required. Email addresses are validated before the service method is called. A successful customer response contains the generated `id`, first name, last name, and email.
 
 ### Accounts
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `POST` | `/api/v1/accounts` | Create an account for a customer |
-| `GET` | `/api/v1/accounts/{accountId}` | Get account details |
-| `POST` | `/api/v1/accounts/{accountId}/deposit` | Deposit money |
-| `POST` | `/api/v1/accounts/{accountId}/withdraw` | Withdraw money |
+| Method | Path | Purpose | Success |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/accounts` | Open an account for a customer | `201 Created` |
+| `GET` | `/api/v1/accounts/{accountId}` | Get account details | `200 OK` |
+| `POST` | `/api/v1/accounts/{accountId}/deposit` | Deposit funds | `200 OK` |
+| `POST` | `/api/v1/accounts/{accountId}/withdraw` | Withdraw funds | `200 OK` |
+| `POST` | `/api/v1/accounts/{accountId}/transfer` | Transfer to another account | `200 OK` |
+| `DELETE` | `/api/v1/accounts/{accountId}` | Run the guarded account-close operation | `204 No Content` |
 
-Create account request:
+Open an account for customer `1`:
 
 ```json
 {
@@ -137,14 +173,21 @@ Create account request:
 }
 ```
 
-Supported account types:
+An account response has this shape:
 
-```text
-SAVINGS
-CREDIT
+```json
+{
+  "id": 1,
+  "accountNumber": "880000000001",
+  "accountBalance": 0,
+  "accountType": "SAVINGS",
+  "accountStatus": "ACTIVE"
+}
 ```
 
-Deposit request:
+### Money movements
+
+Deposit or withdraw from an account by sending an amount:
 
 ```json
 {
@@ -152,33 +195,94 @@ Deposit request:
 }
 ```
 
-Withdraw request:
+Transfer from the account in the URL to another existing account:
 
 ```json
 {
-  "amount": 100.00
+  "amount": 125.50,
+  "destinationAccountId": 2
 }
 ```
 
-## Build and Test
-
-Build the project:
+Example request:
 
 ```bash
-./mvnw clean package
+curl -X POST http://localhost:8081/api/v1/accounts/1/transfer \
+  -H "Content-Type: application/json" \
+  -d '{"amount":125.50,"destinationAccountId":2}'
 ```
 
-Run tests:
+Deposits, withdrawals, and transfers return a transaction record:
 
-```bash
-./mvnw test
+```json
+{
+  "transactionId": 10,
+  "accountNumber": "880000000001",
+  "destinationAccountNumber": "880000000002",
+  "depositedAmount": 125.50,
+  "transactionDate": "2026-07-13T18:42:01.123456",
+  "transactionStatus": "SUCCESS"
+}
 ```
 
-On Windows PowerShell, use `.\mvnw.cmd` instead of `./mvnw`.
+For a deposit or withdrawal, `destinationAccountNumber` is `null`. The response field is named `depositedAmount` for all three movement types; it represents the amount moved, not necessarily a deposit.
 
-## Notes
+### Business rules
 
-- Hibernate is configured with `spring.jpa.hibernate.ddl-auto=update`, so tables are updated automatically during development.
-- SQL logging is enabled with `spring.jpa.show-sql=true`.
-- Account numbers are generated from the account ID using the `8800` prefix.
-- Withdrawals require sufficient funds and deposits must be greater than zero.
+- An account can only be created for an existing customer.
+- Deposit amounts must be greater than zero.
+- Transfer amounts must be greater than zero, and the source account must have sufficient funds.
+- Withdrawal amounts cannot be negative and must not exceed the available balance. The current implementation accepts a zero-value withdrawal and records it; clients should send a value greater than zero.
+- A transfer cannot use the same account as both source and destination.
+- Both accounts in a transfer must exist.
+- Each successful balance-changing action persists a `SUCCESS` transaction with its creation timestamp.
+- Account numbers are assigned once and cannot be reassigned.
+
+### Account deletion / closure behaviour
+
+The `DELETE /api/v1/accounts/{accountId}` endpoint currently does not physically delete the database row. It is a guarded close operation: the account must have a zero balance and already be in the `CLOSED` state; it then persists that closed state and returns `204`.
+
+There is no endpoint yet for changing an account's status from `ACTIVE` to `CLOSED`. In practice, the delete endpoint will return a conflict for an active zero-balance account. This is a useful area to extend if account lifecycle management is required.
+
+## Errors
+
+The global exception handler returns the following structure for the domain errors it handles:
+
+```json
+{
+  "timestamp": "2026-07-13T18:42:01.123456",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Account not Found",
+  "path": "/api/v1/accounts/999"
+}
+```
+
+| Situation | HTTP status |
+| --- | --- |
+| Customer or account does not exist | `404 Not Found` |
+| Insufficient funds | `409 Conflict` |
+| Attempting to close an account that still has a balance | `409 Conflict` |
+| Attempting the guarded close operation while the account is not closed | `409 Conflict` |
+
+Request DTOs use Jakarta Bean Validation for required fields and valid email addresses. Consult Swagger UI for the complete generated contract, including validation metadata.
+
+## Build and test
+
+Compile, package, and run the tests:
+
+```powershell
+.\mvnw.cmd clean package
+```
+
+Run only the tests:
+
+```powershell
+.\mvnw.cmd test
+```
+
+On macOS or Linux, replace `./mvnw.cmd` with `./mvnw`.
+
+## Current scope
+
+This is a development banking API, not a production banking platform. It does not yet provide authentication or authorization, password handling in the customer request contract, pagination, transaction-history endpoints, database migrations, audit controls, or production-ready account-status management. Those would be sensible next steps before exposing the service beyond local development.
