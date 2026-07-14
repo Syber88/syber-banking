@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Getter
 public class Account {
 
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
