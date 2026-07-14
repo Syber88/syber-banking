@@ -31,7 +31,8 @@ public class AccountService {
     public AccountService(AccountRepository accountRepository,
                           CustomerRepository customerRepository,
                           TransactionRepository transactionRepository,
-                          AccountMapper accountMapper, TransactionMapper transactionMapper){
+                          AccountMapper accountMapper,
+                          TransactionMapper transactionMapper){
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.transactionRepository = transactionRepository;
@@ -46,7 +47,7 @@ public class AccountService {
                 new CustomerNotFoundException("Customer not Found"));
         Account account = new Account(customer, BigDecimal.ZERO, request.getAccountType(), AccountStatus.ACTIVE);
         Account createdAccount = accountRepository.save(account);
-        assignAccountNumber(createdAccount.getId());
+        assignAccountNumber(createdAccount);
 
         return accountMapper.toResponse(account);
     }
@@ -123,15 +124,13 @@ public class AccountService {
     }
 
     @Transactional
-    public void assignAccountNumber(Long accountId) {
-        Account account = findAccountOrThrow(accountId);
+    public void assignAccountNumber(Account account) {
         if (account.getAccountNumber() != null) {
             throw new AccountNumberAlreadyAssignedException("Account number has already been assigned.");
         }
         String sequence = String.format("%08d",account.getId());
         String generatedAccountNumber = BANK_PREFIX + sequence;
         account.assignAccountNumber(generatedAccountNumber);
-        accountRepository.save(account);
     }
 
     public Account getAccountById(Long accountId) {

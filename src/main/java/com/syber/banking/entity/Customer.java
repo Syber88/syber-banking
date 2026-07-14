@@ -26,4 +26,9 @@ public class Customer {
     @Email(message = "Email should be valid.")
     private String email;
     private String passwordHash;
+
+    public Customer(Long id, String email) {
+        this.id = id;
+        this.email = email;
+    }
 }
