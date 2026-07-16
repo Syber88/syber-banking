@@ -119,7 +119,6 @@ public class AccountService {
         if (account.getStatus() != AccountStatus.CLOSED) {
             throw new AccountisStillActiveException("Active account cannot be closed.");
         }
-        account.setStatus(AccountStatus.CLOSED);
         accountRepository.save(account);
     }
 

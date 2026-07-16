@@ -23,8 +23,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
@@ -74,5 +73,22 @@ public class AccountServiceTest {
 
         verify(customerRepository).findById(1L);
         verify(accountRepository).save(any(Account.class));
+    }
+
+    @Test
+    void shouldDeleteAccount() {
+        Customer customer = new Customer(1L, "siyamgz1122@gmail.com");
+        Account account = mock(Account.class);
+
+        when(accountRepository.findById(1L)).
+                thenReturn(Optional.of(account));
+
+        when(account.getBalance()).thenReturn(BigDecimal.ZERO);
+
+        when(account.getStatus()).thenReturn(AccountStatus.CLOSED);
+
+        accountService.deleteAccount(1L);
+
+        verify(accountRepository).save(account);
     }
 }
