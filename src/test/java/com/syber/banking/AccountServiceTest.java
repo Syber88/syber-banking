@@ -6,6 +6,8 @@ import com.syber.banking.entity.Account;
 import com.syber.banking.entity.AccountStatus;
 import com.syber.banking.entity.AccountType;
 import com.syber.banking.entity.Customer;
+import com.syber.banking.exception.AccountHasBalanceException;
+import com.syber.banking.exception.AccountisStillActiveException;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -77,7 +80,6 @@ public class AccountServiceTest {
 
     @Test
     void shouldDeleteAccount() {
-        Customer customer = new Customer(1L, "siyamgz1122@gmail.com");
         Account account = mock(Account.class);
 
         when(accountRepository.findById(1L)).
@@ -91,4 +93,38 @@ public class AccountServiceTest {
 
         verify(accountRepository).save(account);
     }
+
+    @Test
+    void shouldThrowWhenAccountHasBalance() {
+        Account account = mock(Account.class);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(account));
+
+        when (account.getBalance())
+                .thenReturn(BigDecimal.TEN);
+
+        assertThrows(AccountHasBalanceException.class, () -> accountService.deleteAccount(1L));
+
+        verify(accountRepository, never()).save(account);
+    }
+
+    @Test
+    void shouldThrowWhenAccountIsStillActive() {
+        Account account = mock(Account.class);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(account));
+
+        when (account.getBalance())
+                .thenReturn(BigDecimal.ZERO);
+
+        when(account.getStatus())
+                .thenReturn(AccountStatus.ACTIVE);
+
+        assertThrows(AccountisStillActiveException.class, () -> accountService.deleteAccount(1L));
+
+        verify(accountRepository, never()).save(account);
+    }
+
 }
