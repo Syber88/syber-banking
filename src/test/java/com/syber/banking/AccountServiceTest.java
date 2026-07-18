@@ -1,13 +1,13 @@
 package com.syber.banking;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
+import com.syber.banking.dto.request.DepositRequest;
 import com.syber.banking.dto.response.AccountResponse;
-import com.syber.banking.entity.Account;
-import com.syber.banking.entity.AccountStatus;
-import com.syber.banking.entity.AccountType;
-import com.syber.banking.entity.Customer;
+import com.syber.banking.dto.response.TransactionResponse;
+import com.syber.banking.entity.*;
 import com.syber.banking.exception.AccountHasBalanceException;
 import com.syber.banking.exception.AccountisStillActiveException;
+import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
@@ -23,8 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -48,6 +47,8 @@ public class AccountServiceTest {
 
     @InjectMocks
     AccountService accountService;
+
+    // --- createAccount ---
 
     @Test
     void shouldCreateAccount() {
@@ -77,6 +78,18 @@ public class AccountServiceTest {
         verify(customerRepository).findById(1L);
         verify(accountRepository).save(any(Account.class));
     }
+
+    @Test
+    void shouldFailToCreateAccountIfCustomerNotFound() {
+        CreateAccountRequest request = new CreateAccountRequest(3L, AccountType.SAVINGS);
+        when(customerRepository.findById(3L))
+                .thenReturn(Optional.empty());
+        assertThrows(CustomerNotFoundException.class, () -> accountService.createAccount(request));
+        verify(customerRepository).findById(3L);
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
+    // --- deleteAccount ---
 
     @Test
     void shouldDeleteAccount() {
@@ -125,6 +138,43 @@ public class AccountServiceTest {
         assertThrows(AccountisStillActiveException.class, () -> accountService.deleteAccount(1L));
 
         verify(accountRepository, never()).save(account);
+    }
+
+    // --- deposit ---
+    @Test
+    void shouldIncreaseBalanceWhenDepositIsCalled() {
+        DepositRequest request = new DepositRequest(BigDecimal.TEN);
+        Account account = mock(Account.class);
+        Transaction transaction = mock(Transaction.class);
+        TransactionResponse response = mock(TransactionResponse.class);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(account));
+
+        when(accountRepository.save(any(Account.class)))
+                .thenReturn(account);
+
+        when(transactionMapper.toTransaction(
+                account,
+                request.getAmount(),
+                TransactionType.DEPOSIT
+        )).thenReturn(transaction);
+
+        when(transactionRepository.saveAndFlush(transaction))
+                .thenReturn(transaction);
+
+        when(transactionMapper.toResponse(transaction))
+                .thenReturn(response);
+
+        TransactionResponse result = accountService.deposit(1L, request);
+        assertEquals(response, result);
+
+        verify(account).deposit(BigDecimal.TEN);
+        verify(accountRepository).save(account);
+        verify(transactionRepository).saveAndFlush(transaction);
+        verify(transactionMapper).toResponse(transaction);
+
+
     }
 
 }
