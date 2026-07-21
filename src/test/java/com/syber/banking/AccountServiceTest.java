@@ -5,10 +5,7 @@ import com.syber.banking.dto.request.DepositRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.TransactionResponse;
 import com.syber.banking.entity.*;
-import com.syber.banking.exception.AccountHasBalanceException;
-import com.syber.banking.exception.AccountisStillActiveException;
-import com.syber.banking.exception.CustomerNotFoundException;
-import com.syber.banking.exception.InvalidTransferAmountException;
+import com.syber.banking.exception.*;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
@@ -190,6 +187,20 @@ public class AccountServiceTest {
                 transactionMapper,
                 transactionRepository
         );
+    }
+
+    @Test
+    void shouldFailToDepositWhenAccountDoesNotExist() {
+        DepositRequest request = new DepositRequest(BigDecimal.TEN);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(AccountNotFoundException.class, () ->
+                accountService.deposit(1L, request));
+
+        verify(accountRepository).findById(1L);
+        verify(transactionRepository, never()).saveAndFlush(any());
     }
 
 }
