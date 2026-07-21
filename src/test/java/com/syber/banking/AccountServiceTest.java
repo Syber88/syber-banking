@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -208,7 +207,7 @@ public class AccountServiceTest {
     // ---withdraw ---
 
     @Test
-    void shouldWithdrawFromAcount() {
+    void shouldWithdrawFromAccount() {
         WithdrawRequest withdrawRequest = new WithdrawRequest(BigDecimal.TEN);
 
         Account account = createAccount(BigDecimal.valueOf(20L));
@@ -243,6 +242,52 @@ public class AccountServiceTest {
         );
         verify(transactionRepository).saveAndFlush(tx);
         verify(transactionMapper).toResponse(tx);
+    }
+
+    @Test
+    void shouldFailToWithdrawIfAmountIsInvalid() {
+        WithdrawRequest request = new WithdrawRequest(BigDecimal.valueOf(-5));
+
+        assertThrows(InvalidTransferAmountException.class, () -> accountService.withdraw(1L, request));
+
+        verifyNoInteractions(
+                accountRepository,
+                transactionRepository,
+                transactionMapper
+        );
+    }
+
+    @Test
+    void shouldFailToWithdrawIfAmountIsInsufficient() {
+        Account account = createAccount(BigDecimal.ZERO);
+        WithdrawRequest request = new WithdrawRequest(BigDecimal.valueOf(10L));
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(account));
+
+        assertThrows(InsufficientFundsException.class, () -> accountService.withdraw(1L, request));
+
+        verify(accountRepository).findById(1L);
+        verify(accountRepository, never()).save(any(Account.class));
+        verifyNoInteractions(
+                transactionRepository,
+                transactionMapper
+        );
+    }
+
+    @Test
+    void shouldFailToWithdrawIfAccountIsNotFound() {
+        WithdrawRequest request = new WithdrawRequest(BigDecimal.TEN);
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(AccountNotFoundException.class, () -> accountService.withdraw(1L, request));
+        verify(accountRepository).findById(1L);
+        verify(accountRepository, never()).save(any(Account.class));
+
+         verifyNoInteractions(
+                 transactionMapper,
+                 transactionRepository);
     }
 
     private Customer createCustomer() {
