@@ -185,15 +185,11 @@ public class AccountServiceTest {
                 1L, request
         ));
 
-        verify(accountRepository, never()).findById(anyLong());
-        verify(accountRepository, never()).save(any(Account.class));
-        verify(transactionRepository, never()).saveAndFlush(any(Transaction.class));
-        verify(transactionMapper, never()).toTransaction(
-                any(Account.class),
-                any(BigDecimal.class),
-                any(TransactionType.class)
+        verifyNoInteractions(
+                accountRepository,
+                transactionMapper,
+                transactionRepository
         );
-        verify(transactionMapper, never()).toResponse(any(Transaction.class));
     }
 
 }
