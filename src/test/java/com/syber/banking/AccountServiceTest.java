@@ -8,6 +8,7 @@ import com.syber.banking.entity.*;
 import com.syber.banking.exception.AccountHasBalanceException;
 import com.syber.banking.exception.AccountisStillActiveException;
 import com.syber.banking.exception.CustomerNotFoundException;
+import com.syber.banking.exception.InvalidTransferAmountException;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
@@ -167,14 +168,28 @@ public class AccountServiceTest {
                 .thenReturn(response);
 
         TransactionResponse result = accountService.deposit(1L, request);
+
         assertEquals(response, result);
 
         verify(account).deposit(BigDecimal.TEN);
         verify(accountRepository).save(account);
         verify(transactionRepository).saveAndFlush(transaction);
         verify(transactionMapper).toResponse(transaction);
+    }
 
+    @Test
+    void shouldFailToDepositWhenAmountIsNegative() {
+        DepositRequest request = new DepositRequest(BigDecimal.valueOf(-5L));
+        Account account = mock(Account.class);
+        Transaction tx = mock(Transaction.class);
 
+        assertThrows(InvalidTransferAmountException.class, () -> accountService.deposit(
+                1L, request
+        ));
+
+        verify(accountRepository, never()).findById(1L);
+        verify(accountRepository, never()).save(account);
+        verify(transactionRepository, never()).saveAndFlush(tx);
     }
 
 }
