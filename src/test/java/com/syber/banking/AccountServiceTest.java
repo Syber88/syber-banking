@@ -2,6 +2,7 @@ package com.syber.banking;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.TransactionResponse;
 import com.syber.banking.entity.*;
@@ -18,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -201,6 +203,59 @@ public class AccountServiceTest {
 
         verify(accountRepository).findById(1L);
         verify(transactionRepository, never()).saveAndFlush(any());
+    }
+
+    // ---withdraw ---
+
+    @Test
+    void shouldWithdrawFromAcount() {
+        WithdrawRequest withdrawRequest = new WithdrawRequest(BigDecimal.TEN);
+
+        Account account = createAccount(BigDecimal.valueOf(20L));
+        Transaction tx = mock(Transaction.class);
+        TransactionResponse response = mock(TransactionResponse.class);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(account));
+        when(accountRepository.save(any(Account.class)))
+                .thenReturn(account);
+        when(transactionMapper.toTransaction(
+                account,
+                withdrawRequest.getAmount(),
+                TransactionType.WITHDRAWAL
+        )).thenReturn(tx);
+        when(transactionMapper.toResponse(tx))
+                .thenReturn(response);
+        when(transactionRepository.saveAndFlush(tx))
+                .thenReturn(tx);
+
+        TransactionResponse result = accountService.withdraw(1L, withdrawRequest);
+
+        assertEquals(response, result);
+        assertEquals(BigDecimal.TEN, account.getBalance());
+
+        verify(accountRepository).findById(1L);
+        verify(accountRepository).save(account);
+        verify(transactionMapper).toTransaction(
+                account,
+                withdrawRequest.getAmount(),
+                TransactionType.WITHDRAWAL
+        );
+        verify(transactionRepository).saveAndFlush(tx);
+        verify(transactionMapper).toResponse(tx);
+    }
+
+    private Customer createCustomer() {
+        return new Customer(1L, "siya@gmail.com");
+    }
+
+    private Account createAccount(BigDecimal balance) {
+        return new Account(
+                createCustomer(),
+                balance,
+                AccountType.SAVINGS,
+                AccountStatus.ACTIVE
+        );
     }
 
 }
