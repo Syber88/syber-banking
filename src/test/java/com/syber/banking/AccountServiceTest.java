@@ -180,16 +180,20 @@ public class AccountServiceTest {
     @Test
     void shouldFailToDepositWhenAmountIsNegative() {
         DepositRequest request = new DepositRequest(BigDecimal.valueOf(-5L));
-        Account account = mock(Account.class);
-        Transaction tx = mock(Transaction.class);
 
         assertThrows(InvalidTransferAmountException.class, () -> accountService.deposit(
                 1L, request
         ));
 
-        verify(accountRepository, never()).findById(1L);
-        verify(accountRepository, never()).save(account);
-        verify(transactionRepository, never()).saveAndFlush(tx);
+        verify(accountRepository, never()).findById(anyLong());
+        verify(accountRepository, never()).save(any(Account.class));
+        verify(transactionRepository, never()).saveAndFlush(any(Transaction.class));
+        verify(transactionMapper, never()).toTransaction(
+                any(Account.class),
+                any(BigDecimal.class),
+                any(TransactionType.class)
+        );
+        verify(transactionMapper, never()).toResponse(any(Transaction.class));
     }
 
 }
