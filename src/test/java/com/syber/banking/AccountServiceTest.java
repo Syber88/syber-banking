@@ -2,6 +2,7 @@ package com.syber.banking;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
+import com.syber.banking.dto.request.TransferRequest;
 import com.syber.banking.dto.request.WithdrawRequest;
 import com.syber.banking.dto.response.AccountResponse;
 import com.syber.banking.dto.response.TransactionResponse;
@@ -210,7 +211,7 @@ public class AccountServiceTest {
     void shouldWithdrawFromAccount() {
         WithdrawRequest withdrawRequest = new WithdrawRequest(BigDecimal.TEN);
 
-        Account account = createAccount(BigDecimal.valueOf(20L));
+        Account account = createAccount(1L, BigDecimal.valueOf(20L));
         Transaction tx = mock(Transaction.class);
         TransactionResponse response = mock(TransactionResponse.class);
 
@@ -259,7 +260,7 @@ public class AccountServiceTest {
 
     @Test
     void shouldFailToWithdrawIfAmountIsInsufficient() {
-        Account account = createAccount(BigDecimal.ZERO);
+        Account account = createAccount(1L, BigDecimal.ZERO);
         WithdrawRequest request = new WithdrawRequest(BigDecimal.valueOf(10L));
 
         when(accountRepository.findById(1L))
@@ -290,17 +291,96 @@ public class AccountServiceTest {
                  transactionRepository);
     }
 
+    // --- transfer ---
+    @Test
+    void shouldTransferFromSourceToDestinationAccount() {
+        Account sourceAccount = createAccount(1L, BigDecimal.TEN);
+        Account destinationAccount = createAccount(2L, BigDecimal.TEN);
+        TransferRequest request = new TransferRequest(BigDecimal.valueOf(5L), destinationAccount.getId());
+        TransactionResponse response = mock(TransactionResponse.class);
+        Transaction transaction = mock(Transaction.class);
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(2L))
+                .thenReturn(Optional.of(destinationAccount));
+        when(accountRepository.save(any(Account.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(transactionMapper.toTransaction(sourceAccount, destinationAccount, request.getAmount()))
+                .thenReturn(transaction);
+        when(transactionRepository.saveAndFlush(transaction))
+                .thenReturn(transaction);
+        when(transactionMapper.toResponse(transaction))
+                .thenReturn(response);
+
+        TransactionResponse result = accountService.transfer(sourceAccount.getId(), request);
+
+        assertEquals(result, response);
+        assertEquals(sourceAccount.getBalance(), BigDecimal.valueOf(5L));
+        assertEquals(destinationAccount.getBalance(), BigDecimal.valueOf(15L));
+
+        verify(accountRepository).findById(1L);
+        verify(accountRepository).findById(2L);
+        verify(accountRepository).save(sourceAccount);
+        verify(accountRepository).save(destinationAccount);
+        verify(transactionMapper).toTransaction(
+                sourceAccount, destinationAccount, request.getAmount()
+        );
+        verify(transactionRepository).saveAndFlush(transaction);
+        verify(transactionMapper).toResponse(transaction);
+    }
+
+    @Test
+    void shouldFailWhenAmountIsInvalid() {
+        Account sourceAccount = createAccount(1L, BigDecimal.TEN);
+        Account destinationAccount = createAccount(2L, BigDecimal.TEN);
+        TransferRequest request = new TransferRequest(BigDecimal.valueOf(-5L), destinationAccount.getId());
+
+        assertThrows(InvalidTransferAmountException.class, () ->
+                accountService.transfer(sourceAccount.getId(), request));
+
+        verifyNoInteractions(
+                accountRepository,
+                transactionRepository,
+                transactionMapper
+        );
+    }
+
+    @Test
+    void shouldFailWhenAccountHasInsufficientFunds() {
+        Account sourceAccount = createAccount(1L, BigDecimal.ZERO);
+        Account destinationAccount = createAccount(2L, BigDecimal.TEN);
+        TransferRequest request = new TransferRequest(BigDecimal.TEN, destinationAccount.getId());
+
+        when(accountRepository.findById(1L))
+                .thenReturn(Optional.of(sourceAccount));
+        when(accountRepository.findById(2L))
+                .thenReturn(Optional.of(destinationAccount));
+
+        assertThrows(InsufficientFundsException.class, () ->
+                accountService.transfer(sourceAccount.getId(), request));
+
+        verifyNoMoreInteractions(
+                accountRepository,
+                transactionMapper,
+                transactionMapper
+        );
+    }
+
     private Customer createCustomer() {
         return new Customer(1L, "siya@gmail.com");
     }
 
-    private Account createAccount(BigDecimal balance) {
-        return new Account(
+    private Account createAccount(Long accountId, BigDecimal balance) {
+
+        Account account = new Account(
                 createCustomer(),
                 balance,
                 AccountType.SAVINGS,
                 AccountStatus.ACTIVE
         );
+        account.setId(accountId);
+        return account;
     }
 
 }
