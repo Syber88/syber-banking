@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.*;
 import java.net.URI;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class CustomerController {
             description = "Creates a new customer in the banking system."
     )
     @PostMapping
-    public ResponseEntity<CustomerResponse> createCustomer(@ModelAttribute CreateCustomerRequest request){
+    public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request){
         CustomerResponse customer = customerService.createCustomer(request);
         URI location = URI.create("/api/v1/customers/" + customer.getId());
         return ResponseEntity.created(location).body(customer);
