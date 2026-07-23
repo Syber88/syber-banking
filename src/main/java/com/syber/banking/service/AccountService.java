@@ -73,7 +73,7 @@ public class AccountService {
             throw new InvalidTransferAmountException("Withdrawal must be greater than zero");
         }
 
-        Account account = findAccountOrThrow(accountId);
+        Account account = getAccountById(accountId);
 
         if (account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new InsufficientFundsException("Insufficient Funds");
@@ -93,8 +93,8 @@ public class AccountService {
             throw new InvalidTransferAmountException("Withdrawal must be greater than zero");
         }
 
-        Account sourceAccount = findAccountOrThrow(sourceId);
-        Account destinationAccount = findAccountOrThrow(request.getDestinationAccountId());
+        Account sourceAccount = getAccountById(sourceId);
+        Account destinationAccount = getAccountById(request.getDestinationAccountId());
 
         if (sourceAccount.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new InsufficientFundsException("Insufficient funds");
@@ -112,7 +112,7 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(Long accountId) {
-        Account account = findAccountOrThrow(accountId);
+        Account account = getAccountById(accountId);
         if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
             throw new AccountHasBalanceException("Cannot delete an account with a balance.");
         }
@@ -133,10 +133,6 @@ public class AccountService {
     }
 
     public Account getAccountById(Long accountId) {
-        return findAccountOrThrow(accountId);
-    }
-
-    private Account findAccountOrThrow(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not Found"));
     }

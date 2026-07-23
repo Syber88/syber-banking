@@ -15,6 +15,9 @@ public class CreateCustomerRequest {
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
 
+    @NotBlank(message = "ID is required")
+    private String nationalId;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     private String email;

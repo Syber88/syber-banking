@@ -1,7 +1,7 @@
 package com.syber.banking.exception;
 
-public class CustomerAlreadyExistsException extends RuntimeException {
-    public CustomerAlreadyExistsException(String message) {
-        super(message);
-    }
+public class CustomerEmailAlreadyExistsException extends RuntimeException {
+        public CustomerEmailAlreadyExistsException(String message) {
+                super(message);
+        }
 }
