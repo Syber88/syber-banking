@@ -5,6 +5,7 @@ import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entity.Customer;
 import com.syber.banking.exception.CustomerEmailAlreadyExistsException;
 import com.syber.banking.exception.CustomerNationalIdAlreadyExistsException;
+import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.mapper.CustomerMapper;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.service.CustomerService;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +74,9 @@ public class CustomerServiceTest {
                 customerMapper
         );
 
-    }@Test
+    }
+
+    @Test
     void shouldFailToCreateCustomerIfNationalIdExists() {
         CreateCustomerRequest request = createCustomerRequest();
         when(customerRepository.existsByEmailIgnoreCase(request.getEmail()))
@@ -86,6 +91,39 @@ public class CustomerServiceTest {
                 customerRepository,
                 customerMapper
         );
+    }
+
+    // --- getCustomer ---
+    @Test
+    void shouldFetchASingleCustomer() {
+        Customer customer = createCustomer(createCustomerRequest());
+        CustomerResponse response = createResponse(customer);
+
+        when(customerRepository.findById(customer.getId()))
+                .thenReturn(Optional.of(customer));
+        when(customerMapper.toResponse(customer))
+                .thenReturn(response);
+
+        CustomerResponse result = customerService.getCustomer(customer.getId());
+
+        assertNotNull(result);
+        assertEquals(response, result);
+        assertEquals("Siya@gmail.com", result.getEmail());
+
+        verify(customerRepository).findById(customer.getId());
+        verify(customerMapper).toResponse(customer);
+    }
+
+    @Test
+    void shouldFailToFetchACustomerIfTheyDoNotExist() {
+        Customer customer = createCustomer(createCustomerRequest());
+        when(customerRepository.findById(customer.getId()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(CustomerNotFoundException.class, () ->
+                customerService.getCustomer(customer.getId()));
+
+        verifyNoInteractions(customerMapper);
     }
 
     private CreateCustomerRequest createCustomerRequest() {
