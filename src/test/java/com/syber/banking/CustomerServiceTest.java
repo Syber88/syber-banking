@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +38,7 @@ public class CustomerServiceTest {
     @Test
     void shouldCreateCustomer() {
         CreateCustomerRequest request = createCustomerRequest();
-        Customer customer = createCustomer(request);
+        Customer customer = createCustomer(1L, request);
         CustomerResponse expectedResponse = createResponse(customer);
 
         when(customerRepository.existsByEmailIgnoreCase(request.getEmail()))
@@ -96,7 +97,7 @@ public class CustomerServiceTest {
     // --- getCustomer ---
     @Test
     void shouldFetchASingleCustomer() {
-        Customer customer = createCustomer(createCustomerRequest());
+        Customer customer = createCustomer(1L, createCustomerRequest());
         CustomerResponse response = createResponse(customer);
 
         when(customerRepository.findById(customer.getId()))
@@ -116,7 +117,7 @@ public class CustomerServiceTest {
 
     @Test
     void shouldFailToFetchACustomerIfTheyDoNotExist() {
-        Customer customer = createCustomer(createCustomerRequest());
+        Customer customer = createCustomer(1L, createCustomerRequest());
         when(customerRepository.findById(customer.getId()))
                 .thenReturn(Optional.empty());
 
@@ -124,6 +125,41 @@ public class CustomerServiceTest {
                 customerService.getCustomer(customer.getId()));
 
         verifyNoInteractions(customerMapper);
+    }
+
+    // --- getCustomers ---
+    @Test
+    void shouldBeAbleToFetchMultipleCustomers() {
+        Customer customer1 = createCustomer(1L, createCustomerRequest());
+        Customer customer2 = createCustomer(
+                2L,
+                new CreateCustomerRequest(
+                        "John",
+                        "Doe",
+                        "0123456789",
+                        "john@gmail.com"
+                )
+        );
+
+        CustomerResponse response1 = createResponse(customer1);
+        CustomerResponse response2 = createResponse(customer2);
+
+        when(customerRepository.findAll())
+                .thenReturn(List.of(customer1, customer2));
+        when(customerMapper.toResponse(customer1))
+                .thenReturn(response1);
+        when(customerMapper.toResponse(customer2))
+                .thenReturn(response2);
+
+        List<CustomerResponse> results = customerService.getCustomers();
+
+        assertEquals(response1, results.get(0));
+        assertEquals(response2, results.get(1));
+        assertEquals(2, results.size());
+
+        verify(customerRepository).findAll();
+        verify(customerMapper).toResponse(customer1);
+        verify(customerMapper).toResponse(customer2);
     }
 
     private CreateCustomerRequest createCustomerRequest() {
@@ -135,8 +171,9 @@ public class CustomerServiceTest {
         );
     }
 
-    private Customer createCustomer(CreateCustomerRequest request) {
+    private Customer createCustomer(Long id, CreateCustomerRequest request) {
         Customer customer = new Customer();
+        customer.setId(id);
         customer.setFirstName(request.getFirstName());
         customer.setNationalId(request.getNationalId());
         customer.setLastName(request.getLastName());

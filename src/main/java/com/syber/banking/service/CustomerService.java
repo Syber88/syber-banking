@@ -29,6 +29,13 @@ public class CustomerService {
         return customerMapper.toResponse(customer);
     }
 
+    public List<CustomerResponse> getCustomers() {
+        return customerRepository.findAll()
+                .stream()
+                .map(customerMapper::toResponse)
+                .toList();
+    }
+
     public CustomerResponse createCustomer(CreateCustomerRequest request) {
         if(customerRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new CustomerEmailAlreadyExistsException("Email already exists");
@@ -44,17 +51,6 @@ public class CustomerService {
 
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(savedCustomer);
-    }
-
-    public List<CustomerResponse> getCustomers() {
-        return customerRepository.findAll().stream()
-                .map(customer -> new CustomerResponse(
-                        customer.getId(),
-                        customer.getFirstName(),
-                        customer.getLastName(),
-                        customer.getEmail()
-                ))
-                .toList();
     }
 
     public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
