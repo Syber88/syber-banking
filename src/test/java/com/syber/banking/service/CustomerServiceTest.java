@@ -1,6 +1,7 @@
-package com.syber.banking;
+package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateCustomerRequest;
+import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.entity.Customer;
 import com.syber.banking.exception.CustomerEmailAlreadyExistsException;
@@ -8,7 +9,6 @@ import com.syber.banking.exception.CustomerNationalIdAlreadyExistsException;
 import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.mapper.CustomerMapper;
 import com.syber.banking.repository.CustomerRepository;
-import com.syber.banking.service.CustomerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -162,6 +162,74 @@ public class CustomerServiceTest {
         verify(customerMapper).toResponse(customer2);
     }
 
+    // --- updateCustomer ---
+    @Test
+    void shouldUpdateCustomer() {
+        Customer customer = createCustomer(1L, createCustomerRequest());
+        UpdateCustomerRequest request = updateCustomerRequest();
+        Customer updatedCustomer = updateCustomer(customer, request);
+        CustomerResponse response = createResponse(updatedCustomer);
+
+        when(customerRepository.findById(customer.getId()))
+                .thenReturn(Optional.of(customer));
+        when(customerRepository.save(updatedCustomer))
+                .thenReturn(updatedCustomer);
+        when(customerMapper.toResponse(updatedCustomer))
+                .thenReturn(response);
+
+        CustomerResponse result = customerService.updateCustomer(1L, request);
+
+        assertNotNull(result);
+        assertEquals("Syber", result.getLastName());
+        assertEquals("Sabelo", result.getFirstName());
+        assertEquals("Sabelo@gmail.com", result.getEmail());
+
+        verify(customerRepository).findById(1L);
+        verify(customerRepository).save(updatedCustomer);
+        verify(customerMapper).toResponse(updatedCustomer);
+    }
+
+    @Test
+    void shouldFailToUpdateIfCustomerDoesNotExist() {
+        UpdateCustomerRequest request = updateCustomerRequest();
+        when(customerRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(CustomerNotFoundException.class, () ->
+                customerService.updateCustomer(1L, request));
+
+        verify(customerRepository).findById(1l);
+        verifyNoMoreInteractions(
+                customerRepository,
+                customerMapper
+        );
+    }
+
+        // ---deleteCustomer ---
+        @Test
+        void shouldDeleteCustomer() {
+            when(customerRepository.existsById(1L))
+                    .thenReturn(true);
+            customerService.deleteCustomer(1L);
+
+            verify(customerRepository).existsById(1L);
+            verify(customerRepository).deleteById(1L);
+        }
+
+        @Test
+        void shouldNotDeleteCustomerIfTheyDoNotExist() {
+            when(customerRepository.existsById(1L))
+                    .thenReturn(false);
+
+            assertThrows(CustomerNotFoundException.class, () ->
+                    customerService.deleteCustomer(1L));
+
+            verifyNoMoreInteractions(
+                    customerRepository
+            );
+        }
+
+
     private CreateCustomerRequest createCustomerRequest() {
         return new CreateCustomerRequest(
                 "Siyabonga",
@@ -171,11 +239,26 @@ public class CustomerServiceTest {
         );
     }
 
+    private UpdateCustomerRequest updateCustomerRequest() {
+        return new UpdateCustomerRequest(
+                "Sabelo",
+                "Syber",
+                "Sabelo@gmail.com"
+        );
+    }
+
     private Customer createCustomer(Long id, CreateCustomerRequest request) {
         Customer customer = new Customer();
         customer.setId(id);
         customer.setFirstName(request.getFirstName());
         customer.setNationalId(request.getNationalId());
+        customer.setLastName(request.getLastName());
+        customer.setEmail(request.getEmail());
+        return customer;
+    }
+
+    private Customer updateCustomer(Customer customer, UpdateCustomerRequest request) {
+        customer.setFirstName(request.getFirstName());
         customer.setLastName(request.getLastName());
         customer.setEmail(request.getEmail());
         return customer;

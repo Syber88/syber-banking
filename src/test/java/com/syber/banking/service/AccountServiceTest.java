@@ -1,4 +1,4 @@
-package com.syber.banking;
+package com.syber.banking.service;
 
 import com.syber.banking.dto.request.CreateAccountRequest;
 import com.syber.banking.dto.request.DepositRequest;
@@ -13,7 +13,6 @@ import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.repository.TransactionRepository;
-import com.syber.banking.service.AccountService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
