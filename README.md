@@ -4,6 +4,10 @@ Syber Banking is a Spring Boot REST API for a small digital-banking domain. It m
 
 The project is intentionally API-first. It has no web interface or authentication layer at present; use the REST endpoints directly or explore them through Swagger UI.
 
+## Documentation
+
+The complete documentation set is available in the [documentation hub](docs/README.md): architecture, API, database, setup, deployment, testing, and user guidance.
+
 ## What the API supports
 
 - Customer registration, lookup, update, and removal
