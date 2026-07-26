@@ -66,15 +66,15 @@ public class Account {
     }
 
     public void deposit(BigDecimal depositAmount){
-        if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
+        if (depositAmount == null || depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Deposit must be greater than zero");
         }
         this.balance = this.balance.add(depositAmount);
     }
 
     public void withdraw(BigDecimal withdrawalAmount){
-        if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InsufficientFundsException("Withdrawal must be greater than zero");
+        if (withdrawalAmount == null || withdrawalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdrawal must be greater than zero");
         }
 
         if (this.balance.compareTo(withdrawalAmount) < 0) {
@@ -93,7 +93,7 @@ public class Account {
         }
 
         if (transferAmount == null || transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidTransferAmountException("Transfer amount must be greater than zero");
+            throw new IllegalArgumentException("Transfer amount must be greater than zero");
         }
 
         if (this.balance.compareTo(transferAmount) < 0) {
