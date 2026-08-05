@@ -62,7 +62,7 @@ public class CustomerController {
             summary = "Update customer",
             description = "Updates an existing customer's information."
     )
-    @PutMapping("/{customerId}")
+    @PatchMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(  @PathVariable Long customerId, @Valid @RequestBody UpdateCustomerRequest request) {
         CustomerResponse customer = customerService.updateCustomer(customerId, request);
         return ResponseEntity.ok(customer);

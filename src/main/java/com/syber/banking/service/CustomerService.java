@@ -55,9 +55,15 @@ public class CustomerService {
 
     public CustomerResponse updateCustomer(Long customerId, UpdateCustomerRequest request) {
         Customer customer = findCustomerOrThrow(customerId);
-        customer.setFirstName(request.getFirstName());
-        customer.setLastName(request.getLastName());
-        customer.setEmail(request.getEmail());
+        if (request.getFirstName() != null) {
+            customer.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            customer.setLastName(request.getLastName());
+        }
+        if (request.getEmail() != null) {
+            customer.setEmail(request.getEmail());
+        }
 
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(savedCustomer);

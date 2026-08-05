@@ -1,5 +1,6 @@
 package com.syber.banking.controller;
 
+import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
 import com.syber.banking.service.CustomerService;
 import org.springframework.http.MediaType;
@@ -10,8 +11,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,6 +55,50 @@ public class CustomerConrollerTest {
                 .andExpect(jsonPath("$.email").value("siya@gmail.com"));
 
         verify(customerService).createCustomer(any());
+    }
+
+    @Test
+    void shouldReturnBadRequestIfRequestInvalid() throws Exception {
+        mockMvc.perform(post("/api/v1/customers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                            "firstName: "",
+                            "lastName": "Syber",
+                            "nationalId": "12341234",
+                            "email": "siya@gmail.com"
+                        }
+                        """)
+        ).andExpect(status().isBadRequest());
+
+        verify(customerService, never()).createCustomer(any());
+    }
+
+    @Test
+    void shouldUpdateCustomer() throws Exception {
+        CustomerResponse response = new CustomerResponse(
+                1L,
+                "Ronaldo",
+                "Syber",
+                "siya@gmail.com"
+        );
+
+        when(customerService.updateCustomer(eq(1L), any(UpdateCustomerRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/v1/customers/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                        "firstName": "Ronaldo"
+                        }
+                        """
+                )
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Ronaldo"));
+
+
     }
 
 
