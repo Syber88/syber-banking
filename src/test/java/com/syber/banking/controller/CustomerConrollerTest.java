@@ -2,6 +2,8 @@ package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
+import com.syber.banking.exception.CustomerEmailAlreadyExistsException;
+import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.service.CustomerService;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
@@ -97,8 +99,22 @@ public class CustomerConrollerTest {
         )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Ronaldo"));
+    }
 
-
+    @Test
+    void shouldNotUpdateCustomerIfCustomerNotFound() throws Exception {
+        when(customerService.updateCustomer(eq(999L), any(UpdateCustomerRequest.class)))
+                .thenThrow(new CustomerNotFoundException("Customer not found"));
+        mockMvc.perform(patch("/api/v1/customers/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                        "firstName": "Ronaldo"
+                        }
+                        """
+                )
+        )
+                .andExpect(status().isNotFound());
     }
 
 
