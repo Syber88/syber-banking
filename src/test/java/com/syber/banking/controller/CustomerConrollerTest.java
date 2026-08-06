@@ -14,8 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -117,7 +116,21 @@ public class CustomerConrollerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void shouldDeleteCustomer() throws Exception {
+        doNothing().when(customerService).deleteCustomer(1L);
+        mockMvc.perform(delete("/api/v1/customers/1"))
+                .andExpect(status().isNoContent());
+        verify(customerService).deleteCustomer(1L);
+    }
 
+    @Test
+    void shouldReturn404WhenCustomerDoesNotExist() throws Exception {
+        doThrow(new CustomerNotFoundException("Customer not found"))
+                .when(customerService).deleteCustomer(999L);
+        mockMvc.perform(delete("/api/v1/customers/999"))
+                .andExpect(status().isNotFound());
 
-
+        verify(customerService).deleteCustomer(999L);
+    }
 }
