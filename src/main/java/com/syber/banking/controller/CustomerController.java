@@ -14,6 +14,8 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
+
+
 @RequestMapping("/api/v1/customers")
 @Tag(name = "Customer", description = "Customer Management APIs")
 public class CustomerController {
@@ -49,19 +51,18 @@ public class CustomerController {
             summary = "Creates a customer",
             description = "Creates a new customer in the banking system."
     )
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request){
         CustomerResponse customer = customerService.createCustomer(request);
         URI location = URI.create("/api/v1/customers/" + customer.getId());
         return ResponseEntity.created(location).body(customer);
-
     }
 
     @Operation(
             summary = "Update customer",
             description = "Updates an existing customer's information."
     )
-    @PutMapping("/{customerId}")
+    @PatchMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> updateCustomer(  @PathVariable Long customerId, @Valid @RequestBody UpdateCustomerRequest request) {
         CustomerResponse customer = customerService.updateCustomer(customerId, request);
         return ResponseEntity.ok(customer);
