@@ -26,7 +26,6 @@ public class AccountTest {
                 .lastName("Syber")
                 .email("Siya@gmail.com")
                 .nationalId("123456789")
-                .passwordHash("saltsalt11")
                 .build();
 
         this.account = new Account(
