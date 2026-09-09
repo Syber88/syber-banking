@@ -19,6 +19,9 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @OneToOne(mappedBy = "customer")
+    private AppUser appUser;
+
     @OneToMany(mappedBy="customer")
     private List<Account> accounts;
     private String firstName;
@@ -29,7 +32,6 @@ public class Customer {
 
     @Column(unique = true, nullable = false)
     private String email;
-    private String passwordHash;
 
     public Customer(Long id, String email) {
         this.id = id;
