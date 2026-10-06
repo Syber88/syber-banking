@@ -32,5 +32,4 @@ public class SessionController {
         return session.getId();
     }
 
-
 }
