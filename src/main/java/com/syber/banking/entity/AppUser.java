@@ -14,7 +14,9 @@ public class AppUser {
 
     @Column(unique = true, nullable = false)
     private String username;
-    private String password;
+
+    @Column(nullable = false)
+    private String passwordHash;
 
     @OneToOne
     @JoinColumn(name = "customer_id", unique = true)
