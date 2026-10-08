@@ -38,7 +38,7 @@ public class AppUserService {
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid Credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new InvalidCredentialsException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid Credentials");
         }
         return user;
     }
