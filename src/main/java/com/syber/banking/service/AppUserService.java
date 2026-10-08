@@ -7,6 +7,7 @@ import com.syber.banking.exception.InvalidCredentialsException;
 import com.syber.banking.exception.UserNotFoundException;
 import com.syber.banking.exception.UsernameAlreadyExistsException;
 import com.syber.banking.repository.AppUserRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,22 +30,12 @@ public class AppUserService {
         AppUser user = new AppUser();
         user.setUsername(request.getUsername());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole("CUSTOMER");
 
         return appUserRepository.save(user);
     }
 
-    public AppUser authenticate(LoginRequest request) {
-        AppUser user = appUserRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid Credentials"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new InvalidCredentialsException("Invalid Credentials");
-        }
-        return user;
-    }
-
-    public AppUser getById(Long userId){
-        return appUserRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    public AppUser getByUsername(String username) {
+        return appUserRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("user not found"));
     }
 }

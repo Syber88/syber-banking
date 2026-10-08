@@ -18,6 +18,9 @@ public class AppUser {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Column(nullable = false)
+    private String role;
+
     @OneToOne
     @JoinColumn(name = "customer_id", unique = true)
     private Customer customer;

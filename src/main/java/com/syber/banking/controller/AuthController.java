@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -31,20 +32,9 @@ public class AuthController {
                 .body(new AppUserResponse(user.getId(), user.getUsername()));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<AppUserResponse> login(@Valid @RequestBody LoginRequest request, HttpSession session) {
-        AppUser user = appUserService.authenticate(request);
-        session.setAttribute("userId", user.getId());
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/me")
-    public ResponseEntity<AppUserResponse> me(HttpSession session){
-        Long userId = (Long) session.getAttribute("userId");
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        AppUser user = appUserService.getById(userId);
+    public ResponseEntity<AppUserResponse> me(Authentication authentication) {
+        AppUser user = appUserService.getByUsername(authentication.getName());
         return ResponseEntity.ok(new AppUserResponse(user.getId(), user.getUsername()));
     }
 }
