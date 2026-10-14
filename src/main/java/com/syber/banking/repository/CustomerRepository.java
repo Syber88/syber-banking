@@ -16,5 +16,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     boolean existsByNationalId(String nationalId);
 
+    Optional<Customer> findByNationalId(String nationalId);
+
     List<Customer> findByVerificationStatus(VerificationStatus verificationStatus);
 }

@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -34,6 +36,7 @@ public class AccountController {
             summary = "Create a bank account",
             description = "Creates a new bank account for an existing customer."
     )
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("")
     public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request);
@@ -46,8 +49,10 @@ public class AccountController {
             description = "Deposits funds into an existing bank account."
     )
     @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<TransactionResponse> deposit(@PathVariable Long accountId, @Valid @RequestBody DepositRequest request){
-        TransactionResponse response = accountService.deposit(accountId, request);
+    public ResponseEntity<TransactionResponse> deposit(@PathVariable Long accountId,
+                                                       @Valid @RequestBody DepositRequest request,
+                                                       Authentication authentication){
+        TransactionResponse response = accountService.deposit(accountId, request, authentication.getName());
         return ResponseEntity.ok(response);
 
     }
@@ -57,8 +62,10 @@ public class AccountController {
             description = "withdraw funds from an existing bank account."
     )
     @PostMapping("/{accountId}/withdraw")
-    public ResponseEntity<TransactionResponse> withdraw(@PathVariable Long accountId, @Valid @RequestBody WithdrawRequest request) {
-        TransactionResponse response = accountService.withdraw(accountId, request);
+    public ResponseEntity<TransactionResponse> withdraw(@PathVariable Long accountId,
+                                                        @Valid @RequestBody WithdrawRequest request,
+                                                        Authentication authentication) {
+        TransactionResponse response = accountService.withdraw(accountId, request, authentication.getName());
         return ResponseEntity.ok(response);
     }
 
@@ -67,8 +74,9 @@ public class AccountController {
             description = "Returns account details using the account ID."
     )
     @GetMapping("/{accountId}")
-    public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId) {
-        Account account = accountService.getAccountById(accountId);
+    public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long accountId,
+                                                          Authentication authentication) {
+        Account account = accountService.getOwnedAccount(accountId, authentication.getName());
         AccountResponse response = mapper.toResponse(account);
         return ResponseEntity.ok(response);
     }
@@ -78,9 +86,10 @@ public class AccountController {
     )
     @PostMapping("/{accountId}/transfer")
     public ResponseEntity<TransactionResponse> transfer(@PathVariable Long accountId,
-                                                        @Valid @RequestBody TransferRequest request
+                                                        @Valid @RequestBody TransferRequest request,
+                                                        Authentication authentication
     ) {
-        TransactionResponse response = accountService.transfer(accountId, request);
+        TransactionResponse response = accountService.transfer(accountId, request, authentication.getName());
         return ResponseEntity.ok(response);
     }
 
@@ -89,8 +98,9 @@ public class AccountController {
             description = "Deletes the account using the account ID."
     )
     @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId) {
-        accountService.deleteAccount(accountId);
+    public ResponseEntity<Void> deleteAccount(@PathVariable Long accountId,
+                                              Authentication authentication) {
+        accountService.deleteAccount(accountId, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 }

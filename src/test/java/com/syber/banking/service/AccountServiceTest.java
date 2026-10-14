@@ -11,8 +11,10 @@ import com.syber.banking.exception.*;
 import com.syber.banking.mapper.AccountMapper;
 import com.syber.banking.mapper.TransactionMapper;
 import com.syber.banking.repository.AccountRepository;
+import com.syber.banking.repository.AppUserRepository;
 import com.syber.banking.repository.CustomerRepository;
 import com.syber.banking.repository.TransactionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,6 +38,9 @@ public class AccountServiceTest {
     CustomerRepository customerRepository;
 
     @Mock
+    AppUserRepository appUserRepository;
+
+    @Mock
     TransactionRepository transactionRepository;
 
     @Mock
@@ -46,6 +51,22 @@ public class AccountServiceTest {
 
     @InjectMocks
     AccountService accountService;
+
+    private static final String OWNER = "owner";
+
+    /**
+     * Every account fixture here belongs to customer 1, so OWNER is wired to
+     * that customer and the ownership guard passes. Tests that need the guard
+     * to FAIL stub a different customer explicitly.
+     */
+    @BeforeEach
+    void givenOwner() {
+        AppUser user = new AppUser();
+        user.setUsername(OWNER);
+        user.setRole("CUSTOMER");
+        user.setCustomer(new Customer(1L, "owner@example.com"));
+        lenient().when(appUserRepository.findByUsername(OWNER)).thenReturn(Optional.of(user));
+    }
 
     // --- createAccount ---
 
@@ -77,6 +98,36 @@ public class AccountServiceTest {
 
         verify(customerRepository).findById(1L);
         verify(accountRepository).save(any(Account.class));
+    }
+
+    // --- ownership (IDOR) ---
+
+    /**
+     * The bug class this guard exists for: a logged-in user asking for an
+     * account that is not theirs. No URL rule can catch this, because the
+     * answer depends on the data.
+     */
+    @Test
+    void shouldRefuseToReadAnAccountBelongingToAnotherCustomer() {
+        Account someoneElses = foreignAccount();
+
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(someoneElses));
+
+        assertThrows(AccountAccessDeniedException.class,
+                () -> accountService.getOwnedAccount(1L, OWNER));
+    }
+
+    @Test
+    void shouldRefuseToWithdrawFromAnotherCustomersAccount() {
+        Account someoneElses = foreignAccount();
+        WithdrawRequest request = new WithdrawRequest(BigDecimal.ONE);
+
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(someoneElses));
+
+        assertThrows(AccountAccessDeniedException.class,
+                () -> accountService.withdraw(1L, request, OWNER));
+
+        verify(accountRepository, never()).save(any(Account.class));
     }
 
     @Test
@@ -114,11 +165,12 @@ public class AccountServiceTest {
         when(accountRepository.findById(1L)).
                 thenReturn(Optional.of(account));
 
+        when(account.getCustomer()).thenReturn(new Customer(1L, "owner@example.com"));
         when(account.getBalance()).thenReturn(BigDecimal.ZERO);
 
         when(account.getStatus()).thenReturn(AccountStatus.CLOSED);
 
-        accountService.deleteAccount(1L);
+        accountService.deleteAccount(1L, OWNER);
 
         verify(accountRepository).save(account);
     }
@@ -130,10 +182,11 @@ public class AccountServiceTest {
         when(accountRepository.findById(1L))
                 .thenReturn(Optional.of(account));
 
+        when(account.getCustomer()).thenReturn(new Customer(1L, "owner@example.com"));
         when (account.getBalance())
                 .thenReturn(BigDecimal.TEN);
 
-        assertThrows(AccountHasBalanceException.class, () -> accountService.deleteAccount(1L));
+        assertThrows(AccountHasBalanceException.class, () -> accountService.deleteAccount(1L, OWNER));
 
         verify(accountRepository, never()).save(account);
     }
@@ -145,13 +198,14 @@ public class AccountServiceTest {
         when(accountRepository.findById(1L))
                 .thenReturn(Optional.of(account));
 
+        when(account.getCustomer()).thenReturn(new Customer(1L, "owner@example.com"));
         when (account.getBalance())
                 .thenReturn(BigDecimal.ZERO);
 
         when(account.getStatus())
                 .thenReturn(AccountStatus.ACTIVE);
 
-        assertThrows(AccountisStillActiveException.class, () -> accountService.deleteAccount(1L));
+        assertThrows(AccountisStillActiveException.class, () -> accountService.deleteAccount(1L, OWNER));
 
         verify(accountRepository, never()).save(account);
     }
@@ -163,6 +217,8 @@ public class AccountServiceTest {
         Account account = mock(Account.class);
         Transaction transaction = mock(Transaction.class);
         TransactionResponse response = mock(TransactionResponse.class);
+
+        when(account.getCustomer()).thenReturn(createCustomer());
 
         when(accountRepository.findById(1L))
                 .thenReturn(Optional.of(account));
@@ -182,7 +238,7 @@ public class AccountServiceTest {
         when(transactionMapper.toResponse(transaction))
                 .thenReturn(response);
 
-        TransactionResponse result = accountService.deposit(1L, request);
+        TransactionResponse result = accountService.deposit(1L, request, OWNER);
 
         assertEquals(response, result);
 
@@ -197,7 +253,7 @@ public class AccountServiceTest {
         DepositRequest request = new DepositRequest(BigDecimal.valueOf(-5L));
 
         assertThrows(InvalidTransferAmountException.class, () -> accountService.deposit(
-                1L, request
+                1L, request, OWNER
         ));
 
         verifyNoInteractions(
@@ -215,7 +271,7 @@ public class AccountServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(AccountNotFoundException.class, () ->
-                accountService.deposit(1L, request));
+                accountService.deposit(1L, request, OWNER));
 
         verify(accountRepository).findById(1L);
         verify(transactionRepository, never()).saveAndFlush(any());
@@ -245,7 +301,7 @@ public class AccountServiceTest {
         when(transactionRepository.saveAndFlush(tx))
                 .thenReturn(tx);
 
-        TransactionResponse result = accountService.withdraw(1L, withdrawRequest);
+        TransactionResponse result = accountService.withdraw(1L, withdrawRequest, OWNER);
 
         assertEquals(response, result);
         assertEquals(BigDecimal.TEN, account.getBalance());
@@ -265,7 +321,7 @@ public class AccountServiceTest {
     void shouldFailToWithdrawIfAmountIsInvalid() {
         WithdrawRequest request = new WithdrawRequest(BigDecimal.valueOf(-5));
 
-        assertThrows(InvalidTransferAmountException.class, () -> accountService.withdraw(1L, request));
+        assertThrows(InvalidTransferAmountException.class, () -> accountService.withdraw(1L, request, OWNER));
 
         verifyNoInteractions(
                 accountRepository,
@@ -282,7 +338,7 @@ public class AccountServiceTest {
         when(accountRepository.findById(1L))
                 .thenReturn(Optional.of(account));
 
-        assertThrows(InsufficientFundsException.class, () -> accountService.withdraw(1L, request));
+        assertThrows(InsufficientFundsException.class, () -> accountService.withdraw(1L, request, OWNER));
 
         verify(accountRepository).findById(1L);
         verify(accountRepository, never()).save(any(Account.class));
@@ -298,7 +354,7 @@ public class AccountServiceTest {
         when(accountRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(AccountNotFoundException.class, () -> accountService.withdraw(1L, request));
+        assertThrows(AccountNotFoundException.class, () -> accountService.withdraw(1L, request, OWNER));
         verify(accountRepository).findById(1L);
         verify(accountRepository, never()).save(any(Account.class));
 
@@ -329,7 +385,7 @@ public class AccountServiceTest {
         when(transactionMapper.toResponse(transaction))
                 .thenReturn(response);
 
-        TransactionResponse result = accountService.transfer(sourceAccount.getId(), request);
+        TransactionResponse result = accountService.transfer(sourceAccount.getId(), request, OWNER);
 
         assertEquals(result, response);
         assertEquals(sourceAccount.getBalance(), BigDecimal.valueOf(5L));
@@ -353,7 +409,7 @@ public class AccountServiceTest {
         TransferRequest request = new TransferRequest(BigDecimal.valueOf(-5L), destinationAccount.getId());
 
         assertThrows(InvalidTransferAmountException.class, () ->
-                accountService.transfer(sourceAccount.getId(), request));
+                accountService.transfer(sourceAccount.getId(), request, OWNER));
 
         verifyNoInteractions(
                 accountRepository,
@@ -374,7 +430,7 @@ public class AccountServiceTest {
                 .thenReturn(Optional.of(destinationAccount));
 
         assertThrows(InsufficientFundsException.class, () ->
-                accountService.transfer(sourceAccount.getId(), request));
+                accountService.transfer(sourceAccount.getId(), request, OWNER));
 
         verifyNoMoreInteractions(
                 accountRepository,
@@ -385,6 +441,18 @@ public class AccountServiceTest {
 
     private Customer createCustomer() {
         return new Customer(1L, "siya@gmail.com");
+    }
+
+    /** An account belonging to customer 999, i.e. NOT the OWNER's. */
+    private Account foreignAccount() {
+        Account account = new Account(
+                new Customer(999L, "other@example.com"),
+                BigDecimal.TEN,
+                AccountType.SAVINGS,
+                AccountStatus.ACTIVE
+        );
+        account.setId(1L);
+        return account;
     }
 
     private Account createAccount(Long accountId, BigDecimal balance) {
