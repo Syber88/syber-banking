@@ -53,6 +53,7 @@ public class AccountServiceTest {
     void shouldCreateAccount() {
 
         Customer customer = new Customer(1L, "siyamgz1122@gmail.com");
+        customer.setVerificationStatus(VerificationStatus.VERIFIED);
 
         CreateAccountRequest request =
                 new CreateAccountRequest(1L, AccountType.SAVINGS);
@@ -76,6 +77,22 @@ public class AccountServiceTest {
 
         verify(customerRepository).findById(1L);
         verify(accountRepository).save(any(Account.class));
+    }
+
+    @Test
+    void shouldFailToCreateAccountIfCustomerNotVerified() {
+        Customer customer = new Customer(1L, "siyamgz1122@gmail.com");
+        customer.setVerificationStatus(VerificationStatus.PENDING);
+
+        CreateAccountRequest request = new CreateAccountRequest(1L, AccountType.SAVINGS);
+
+        when(customerRepository.findById(1L))
+                .thenReturn(Optional.of(customer));
+
+        assertThrows(CustomerNotVerifiedException.class,
+                () -> accountService.createAccount(request));
+
+        verify(accountRepository, never()).save(any(Account.class));
     }
 
     @Test

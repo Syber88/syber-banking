@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -76,5 +78,37 @@ public class CustomerController {
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long customerId) {
         customerService.deleteCustomer(customerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Verify a customer",
+            description = "Marks a PENDING customer as VERIFIED. Admin only."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{customerId}/verify")
+    public ResponseEntity<CustomerResponse> verify(@PathVariable Long customerId,
+                                                   Authentication authentication) {
+        return ResponseEntity.ok(customerService.verifyCustomer(customerId, authentication.getName()));
+    }
+
+    @Operation(
+            summary = "Reject a customer",
+            description = "Marks a PENDING customer as REJECTED. Admin only."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{customerId}/reject")
+    public ResponseEntity<CustomerResponse> reject(@PathVariable Long customerId,
+                                                   Authentication authentication) {
+        return ResponseEntity.ok(customerService.rejectCustomer(customerId, authentication.getName()));
+    }
+
+    @Operation(
+            summary = "Review queue",
+            description = "Lists customers awaiting identity verification. Admin only."
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/pending")
+    public ResponseEntity<List<CustomerResponse>> pending() {
+        return ResponseEntity.ok(customerService.getPendingCustomers());
     }
 }

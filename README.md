@@ -2,7 +2,7 @@
 
 Syber Banking is a Spring Boot REST API for a small digital-banking domain. It manages customers and accounts, supports deposits, withdrawals, and transfers, and creates a transaction record for every successful money movement.
 
-The application exposes an API only. There is currently no browser interface or authentication layer.
+The application exposes an API only; there is no browser interface. Requests are authenticated with a server-side session identified by the `JSESSIONID` cookie, managed by Spring Security.
 
 ## Features
 
@@ -14,6 +14,8 @@ The application exposes an API only. There is currently no browser interface or 
 - Deposit, withdraw, and transfer funds
 - Persist `SUCCESS` transaction records for completed money movements
 - Validate request bodies and apply core balance rules
+- Register a login for a customer, with the password stored as a BCrypt hash
+- Authenticate with a session cookie; require authentication on every endpoint except registration, login and the OpenAPI endpoints
 - Provide OpenAPI documentation in Swagger UI
 
 ## Technology
@@ -27,6 +29,7 @@ The application exposes an API only. There is currently no browser interface or 
 | Database | PostgreSQL |
 | Build | Maven |
 | API documentation | Springdoc OpenAPI |
+| Security | Spring Security (session authentication, BCrypt) |
 | Boilerplate reduction | Lombok |
 
 ## Project layout
@@ -35,7 +38,7 @@ The application exposes an API only. There is currently no browser interface or 
 src/
 ├── main/
 │   ├── java/com/syber/banking/
-│   │   ├── config/       # OpenAPI configuration
+│   │   ├── config/       # OpenAPI and Spring Security configuration
 │   │   ├── controller/   # HTTP endpoints
 │   │   ├── dto/          # Request and response contracts
 │   │   ├── entity/       # JPA entities and enums
@@ -104,7 +107,42 @@ When it starts, use:
 
 ## API summary
 
-All request bodies are JSON and should include `Content-Type: application/json`.
+All request bodies are JSON and should include `Content-Type: application/json`, **except** `POST /api/v1/auth/login`, which is handled by Spring Security's form-login filter and takes form-encoded parameters.
+
+Every endpoint below requires an authenticated session except registration and login.
+
+### Authentication
+
+| Method | Path | Description | Success |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/auth/register` | Create a login | `201 Created` |
+| `POST` | `/api/v1/auth/login` | Start a session | `302 Found` to `/` |
+| `POST` | `/api/v1/auth/logout` | Invalidate the session | `302 Found` |
+| `GET` | `/api/v1/auth/me` | Return the authenticated user | `200 OK` |
+
+Register:
+
+```json
+{
+  "username": "syber",
+  "password": "password123"
+}
+```
+
+The password must be at least 8 characters. The role is assigned server-side as `CUSTOMER` and is never read from the request body. A duplicate username returns `409 Conflict`.
+
+Log in and keep the session cookie:
+
+```bash
+curl -c jar.txt -X POST http://localhost:8081/api/v1/auth/login \
+  -d 'username=syber&password=password123'
+
+curl -b jar.txt http://localhost:8081/api/v1/auth/me
+```
+
+`formLogin` redirects rather than returning a JSON body: `302` to `/` on success, `302` to `/login?error` on failure. Invalid credentials sent to the service layer return `401 Unauthorized`; an unknown username and a wrong password return the same response so that valid usernames cannot be enumerated.
+
+In a browser, Swagger UI sends the session cookie automatically once you have logged in.
 
 ### Customers
 
@@ -197,7 +235,7 @@ Handled domain errors return this shape:
 }
 ```
 
-`404 Not Found` is returned for missing customers and accounts. Insufficient funds and invalid account-close state return `409 Conflict`. Validation and several other exceptions still use Spring Boot's default error response; see Swagger UI for the generated request contract.
+`404 Not Found` is returned for missing customers, accounts and users. Insufficient funds, invalid account-close state and duplicate usernames return `409 Conflict`. Invalid credentials return `401 Unauthorized`. Requests with no session are rejected by the security filter chain with an empty `401` before reaching a controller, so they carry no JSON body. Validation and several other exceptions still use Spring Boot's default error response; see Swagger UI for the generated request contract.
 
 ## Build and test
 
@@ -211,12 +249,16 @@ mvn test
 Priority improvements before using this outside local development:
 
 1. Restore the Maven Wrapper configuration (`.mvn/wrapper/maven-wrapper.properties`) so the documented wrapper commands work.
-2. Add authentication and authorization, including secure password registration and login. `Customer.passwordHash` exists but is not populated or exposed through an authentication flow.
-3. Complete global error handling for validation failures, duplicate email/national-ID errors, invalid movement amounts, and illegal transfer requests. Return one consistent JSON error format.
-4. Fix transfer validation to explicitly require an amount greater than zero before loading accounts, and add tests for zero and same-account transfers.
-5. Add account lifecycle endpoints and rules for freezing, closing, and reopening accounts; then make the current guarded close operation meaningful.
-6. Prevent unsafe customer deletion when accounts exist, or define and enforce a clear cascade/retention policy.
-7. Add transaction-history endpoints with pagination, filtering, and stable transaction terminology (`amount` rather than `depositedAmount` for every movement).
-8. Add database migrations (for example, Flyway) and production profiles. Do not use Hibernate `ddl-auto=update` as the production migration strategy.
-9. Protect balances from concurrent-update races with database locking or optimistic locking, and add integration tests against PostgreSQL.
-10. Add production safeguards: secrets management, HTTPS, observability, rate limiting, audit logging, backups, and CI checks.
+2. **Add authorization.** Authentication works, but authorization does not. `AppUser.role` is stored and never checked, so no endpoint is admin-only. More seriously, there are no ownership checks: an authenticated user can read and move money on accounts belonging to any other customer. Enforce ownership in the service layer on every endpoint that takes an account or customer ID.
+3. **Re-enable CSRF protection.** It is disabled in `SecurityConfig`. Because authentication is cookie-based, the browser attaches the session automatically, including on requests triggered by other sites. This must be fixed before any browser client uses the API.
+4. **Link `AppUser` to `Customer` at registration.** `AppUser.customer` is nullable and currently always null, which blocks the ownership checks above. Enrolment should resolve an existing customer by national ID and prove possession of a second factor (an OTP to a phone already on file) before creating the login — a national ID alone identifies a person but does not authenticate them.
+5. Set cookie security attributes (`Secure`, `SameSite`) and session timeouts (idle and absolute).
+6. Replace in-memory sessions with an external store (Spring Session with Redis) before running more than one instance; a restart currently logs every user out.
+7. Complete global error handling for validation failures, duplicate email/national-ID errors, invalid movement amounts, and illegal transfer requests. Return one consistent JSON error format.
+8. Fix transfer validation to explicitly require an amount greater than zero before loading accounts, and add tests for zero and same-account transfers.
+9. Add account lifecycle endpoints and rules for freezing, closing, and reopening accounts; then make the current guarded close operation meaningful.
+10. Prevent unsafe customer deletion when accounts exist, or define and enforce a clear cascade/retention policy.
+11. Add transaction-history endpoints with pagination, filtering, and stable transaction terminology (`amount` rather than `depositedAmount` for every movement).
+12. Add database migrations (for example, Flyway) and production profiles. Do not use Hibernate `ddl-auto=update` as the production migration strategy.
+13. Protect balances from concurrent-update races with database locking or optimistic locking, and add integration tests against PostgreSQL.
+14. Add production safeguards: secrets management, HTTPS, observability, rate limiting, audit logging, backups, and CI checks.

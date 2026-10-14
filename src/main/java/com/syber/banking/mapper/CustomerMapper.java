@@ -15,7 +15,8 @@ public class CustomerMapper {
                 customer.getId(),
                 customer.getFirstName(),
                 customer.getLastName(),
-                customer.getEmail()
+                customer.getEmail(),
+                customer.getVerificationStatus()
         );
     }
 

@@ -8,7 +8,10 @@ import com.syber.banking.exception.CustomerEmailAlreadyExistsException;
 import com.syber.banking.exception.CustomerNationalIdAlreadyExistsException;
 import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.mapper.CustomerMapper;
+import com.syber.banking.entity.VerificationStatus;
 import com.syber.banking.repository.CustomerRepository;
+import com.syber.banking.verification.IdentityVerifier;
+import com.syber.banking.verification.VerificationResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +34,9 @@ public class CustomerServiceTest {
     @Mock
     CustomerMapper customerMapper;
 
+    @Mock
+    IdentityVerifier identityVerifier;
+
     @InjectMocks
     CustomerService customerService;
 
@@ -43,6 +49,8 @@ public class CustomerServiceTest {
 
         when(customerRepository.existsByEmailIgnoreCase(request.getEmail()))
                 .thenReturn(false);
+        when(identityVerifier.verify(any(), any(), any()))
+                .thenReturn(VerificationResult.verified("TEST"));
         when(customerRepository.save(any(Customer.class)))
                 .thenReturn(customer);
         when(customerMapper.toResponse(customer))
@@ -269,7 +277,8 @@ public class CustomerServiceTest {
                 1L,
                 customer.getFirstName(),
                 customer.getLastName(),
-                customer.getEmail()
+                customer.getEmail(),
+                customer.getVerificationStatus()
         );
     }
 }

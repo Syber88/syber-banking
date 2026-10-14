@@ -2,6 +2,7 @@ package com.syber.banking.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,6 +17,7 @@ public class CreateCustomerRequest {
     private String lastName;
 
     @NotBlank(message = "ID is required")
+    @Pattern(regexp = "\\d{13}", message = "National ID must be 13 digits")
     private String nationalId;
 
     @NotBlank(message = "Email is required")

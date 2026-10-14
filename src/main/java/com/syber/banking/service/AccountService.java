@@ -43,8 +43,12 @@ public class AccountService {
     @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
 
-        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow(() ->
-                new CustomerNotFoundException("Customer not Found"));
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not Found"));
+
+        if (customer.getVerificationStatus() != VerificationStatus.VERIFIED) {
+            throw new CustomerNotVerifiedException("Customer identity is not verified");
+        }
         Account account = new Account(customer, BigDecimal.ZERO, request.getAccountType(), AccountStatus.ACTIVE);
         Account createdAccount = accountRepository.save(account);
         assignAccountNumber(createdAccount);

@@ -2,6 +2,7 @@ package com.syber.banking.controller;
 
 import com.syber.banking.dto.request.UpdateCustomerRequest;
 import com.syber.banking.dto.response.CustomerResponse;
+import com.syber.banking.entity.VerificationStatus;
 import com.syber.banking.exception.CustomerNotFoundException;
 import com.syber.banking.service.CustomerService;
 import org.springframework.http.MediaType;
@@ -34,7 +35,8 @@ public class CustomerControllerTest {
                 1L,
                 "Siyabonga",
                 "Syber",
-                "siya@gmail.com"
+                "siya@gmail.com",
+                VerificationStatus.VERIFIED
         );
 
         when(customerService.createCustomer(any()))
@@ -46,7 +48,7 @@ public class CustomerControllerTest {
                         {
                           "firstName": "Siyabonga",
                           "lastName": "Syber",
-                          "nationalId": "12341234",
+                          "nationalId": "8001015009087",
                           "email": "siya@gmail.com"
                         }
                         """)
@@ -82,7 +84,8 @@ public class CustomerControllerTest {
                 1L,
                 "Ronaldo",
                 "Syber",
-                "siya@gmail.com"
+                "siya@gmail.com",
+                VerificationStatus.VERIFIED
         );
 
         when(customerService.updateCustomer(eq(1L), any(UpdateCustomerRequest.class)))
@@ -141,7 +144,8 @@ public class CustomerControllerTest {
                 1L,
                 "Nigel",
                 "Baxter",
-                "Nigel@gmail.com"
+                "Nigel@gmail.com",
+                VerificationStatus.VERIFIED
         );
         when(customerService.getCustomer(1L))
                 .thenReturn(response);
@@ -170,14 +174,16 @@ public class CustomerControllerTest {
                 1L,
                 "Nigel",
                 "Baxter",
-                "Nigel@gmail.com"
+                "Nigel@gmail.com",
+                VerificationStatus.VERIFIED
         );
 
         CustomerResponse customer2 = new CustomerResponse(
                 2L,
                 "John",
                 "Doe",
-                "john@gmail.com"
+                "john@gmail.com",
+                VerificationStatus.VERIFIED
         );
 
         when(customerService.getCustomers())

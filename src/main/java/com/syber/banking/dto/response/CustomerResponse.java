@@ -1,5 +1,6 @@
 package com.syber.banking.dto.response;
 
+import com.syber.banking.entity.VerificationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,4 +11,5 @@ public class CustomerResponse {
     private String firstName;
     private String lastName;
     private String email;
+    private VerificationStatus verificationStatus;
 }
